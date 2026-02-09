@@ -1,0 +1,7 @@
+{
+  "name": "SerenityAI",
+  "description": "A holistic wellness companion featuring real-time stress assessment via voice, mood tracking, and health trend monitoring using Gemini AI.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

@@ -1,0 +1,10 @@
+/* 基礎樣式：與 index.html 的 body 設定一致，避免 404 */
+* {
+  box-sizing: border-box;
+}
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
