@@ -25,7 +25,7 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ moodLogs, onAddLog }) => {
   return (
     <div className="p-6 space-y-8 animate-in slide-in-from-right duration-500">
       <div className="bg-white/60 glass rounded-[2.5rem] p-8 shadow-sm border border-white/40">
-        <h3 className="text-xl font-black text-slate-800 mb-8 text-center">你现在感觉如何？</h3>
+        <h3 className="text-xl font-black text-slate-800 mb-8 text-center">你現在感覺如何？</h3>
         
         <div className="grid grid-cols-4 gap-4 mb-10">
           {(Object.keys(MOOD_CONFIG) as Mood[]).map(mood => (
@@ -33,8 +33,9 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ moodLogs, onAddLog }) => {
               key={mood}
               onClick={() => setSelectedMood(mood)}
               className={`flex flex-col items-center gap-3 p-3 rounded-[2rem] transition-all ${
-                selectedMood === mood ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100 scale-110' : 'hover:bg-indigo-50 text-slate-400'
+                selectedMood === mood ? 'text-white shadow-xl scale-110' : 'hover:bg-violet-50 text-slate-400'
               }`}
+              style={selectedMood === mood ? { background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' } : {}}
             >
               <span className="text-3xl">{MOOD_CONFIG[mood].emoji}</span>
               <span className={`text-[11px] font-black ${selectedMood === mood ? 'text-white' : 'text-slate-500'}`}>{MOOD_CONFIG[mood].label}</span>
@@ -46,25 +47,26 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ moodLogs, onAddLog }) => {
           <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
             <div>
               <div className="flex justify-between items-center mb-3 px-1">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest">自感压力等级</label>
-                <span className="text-sm font-black text-indigo-600">{stress}%</span>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest">自感壓力等級</label>
+                <span className="text-sm font-black" style={{ color: '#7c6ba8' }}>{stress}%</span>
               </div>
               <input 
                 type="range" 
                 min="0" max="100" 
                 value={stress}
                 onChange={(e) => setStress(Number(e.target.value))}
-                className="w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer accent-indigo-600"
+                className="w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer"
+              style={{ accentColor: '#7c6ba8' }}
               />
             </div>
 
             <div>
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-3 px-1">心情备注 (可选)</label>
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-3 px-1">心情備註 (可選)</label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="此刻你在想什么？"
-                className="w-full bg-slate-50/50 border-none rounded-[2rem] p-5 text-sm focus:ring-2 focus:ring-indigo-500 transition-all outline-none min-h-[120px]"
+                placeholder="此刻你在想什麼？"
+                className="w-full bg-slate-50/50 border border-violet-100/40 rounded-[2rem] p-5 text-sm focus:ring-2 focus:ring-[#9b87c4]/50 transition-all outline-none min-h-[120px]"
               />
             </div>
 
@@ -80,16 +82,16 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ moodLogs, onAddLog }) => {
 
       <div className="space-y-4">
         <h3 className="font-black text-slate-800 px-2 uppercase text-xs tracking-widest flex items-center gap-2">
-          <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>
-          最近的心情足迹
+          <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#9b87c4' }}></div>
+          最近的心情足跡
         </h3>
         {moodLogs.length === 0 ? (
           <div className="text-center py-16 text-slate-400">
-            <p className="text-sm font-medium">开启你的第一条心情记录吧。</p>
+            <p className="text-sm font-medium">開啟你的第一條心情記錄吧。</p>
           </div>
         ) : (
           moodLogs.map(log => (
-            <div key={log.id} className="bg-white/60 glass rounded-[2rem] p-5 border-none shadow-sm flex items-start gap-4">
+            <div key={log.id} className="glass-warm rounded-[2rem] p-5 border border-violet-100/30 shadow-sm flex items-start gap-4">
               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0 ${MOOD_CONFIG[log.mood].color} bg-opacity-20`}>
                 {MOOD_CONFIG[log.mood].emoji}
               </div>
@@ -104,7 +106,7 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ moodLogs, onAddLog }) => {
                 <div className="mt-3 flex items-center gap-3">
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter shrink-0">STRESS</span>
                   <div className="h-1 flex-1 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-400" style={{ width: `${log.stressLevel}%` }}></div>
+                    <div className="h-full rounded-full" style={{ width: `${log.stressLevel}%`, background: 'linear-gradient(90deg, #b8a9d4 0%, #7c6ba8 100%)' }}></div>
                   </div>
                 </div>
               </div>

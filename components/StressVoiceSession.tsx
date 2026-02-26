@@ -48,7 +48,7 @@ interface StressVoiceSessionProps {
 const StressVoiceSession: React.FC<StressVoiceSessionProps> = ({ onCompleteStressTest }) => {
   const [isActive, setIsActive] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [statusMessage, setStatusMessage] = useState('感到压力很大？和我聊聊吧。');
+  const [statusMessage, setStatusMessage] = useState('感到壓力很大？和我聊聊吧。');
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const inputAudioContextRef = useRef<AudioContext | null>(null);
@@ -111,19 +111,23 @@ const StressVoiceSession: React.FC<StressVoiceSessionProps> = ({ onCompleteStres
     sourcesRef.current.forEach(s => s.stop());
     sourcesRef.current.clear();
     setIsActive(false);
-    setStatusMessage('会话已结束。正在生成你的压力报告...');
+    setStatusMessage('會話已結束。語音測評功能開發中，暫時無法生成真實壓力報告。');
     
     setTimeout(() => {
-        onCompleteStressTest(Math.floor(Math.random() * 40) + 30);
+        onCompleteStressTest(50);
     }, 1500);
   };
 
   const startSession = async () => {
     try {
+      if (!(process.env as any).HAS_GEMINI_KEY) {
+        setStatusMessage('語音測評需要 Gemini API Key，請在 .env.local 設定 GEMINI_API_KEY');
+        return;
+      }
       setIsConnecting(true);
-      setStatusMessage('正在连接 AI 咨询师...');
+      setStatusMessage('正在連接 AI 諮詢師...');
 
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      const ai = new GoogleGenAI({ apiKey: '' });
       
       const outCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       const inCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -143,7 +147,7 @@ const StressVoiceSession: React.FC<StressVoiceSessionProps> = ({ onCompleteStres
           onopen: () => {
             setIsConnecting(false);
             setIsActive(true);
-            setStatusMessage('我正在听。你现在感觉怎么样？');
+            setStatusMessage('我正在聽。你現在感覺怎麼樣？');
             
             const source = inCtx.createMediaStreamSource(stream);
             source.connect(analyser); // Connect to analyser
@@ -199,7 +203,7 @@ const StressVoiceSession: React.FC<StressVoiceSessionProps> = ({ onCompleteStres
     } catch (err) {
       console.error(err);
       setIsConnecting(false);
-      setStatusMessage('连接失败。请检查麦克风权限。');
+      setStatusMessage('連接失敗。請檢查麥克風權限。');
     }
   };
 

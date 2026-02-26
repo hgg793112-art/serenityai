@@ -3,24 +3,46 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SerenityAI - Wellness Companion</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>小寧陪你 - 寧靜島 · 你的情緒小夥伴</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#E8E0F5" />
+    <meta name="description" content="小寧陪你：來自寧靜島的刺猬小夥伴，陪你記錄心情、照顧內心。小寧懂你，陪你慢慢好起來。" />
+
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="小寧陪你" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- App Icons -->
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #000;
+        background: linear-gradient(165deg, #faf8ff 0%, #f0ebf8 35%, #e8e0f5 70%, #f5f0fc 100%);
+        min-height: 100vh;
       }
       .glass {
-        background: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.72);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(232, 224, 245, 0.4);
       }
-      @keyframes pulse-custom {
-        0%, 100% { transform: scale(1); opacity: 0.8; }
-        50% { transform: scale(1.15); opacity: 1; }
+      .glass-warm {
+        background: rgba(255, 252, 248, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(232, 224, 245, 0.35);
+      }
+      @keyframes float-soft {
+        0%, 100% { transform: translateY(0); opacity: 1; }
+        50% { transform: translateY(-4px); opacity: 0.92; }
       }
       @keyframes shimmer {
         0% { transform: translateX(-100%); }

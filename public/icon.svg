@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+  <!-- Lotus / calm symbol -->
+  <g transform="translate(256,240)" fill="white" opacity="0.95">
+    <!-- center petal -->
+    <ellipse cx="0" cy="-40" rx="28" ry="70"/>
+    <!-- left petals -->
+    <ellipse cx="-50" cy="-20" rx="26" ry="62" transform="rotate(-25,-50,-20)"/>
+    <ellipse cx="-90" cy="10" rx="22" ry="52" transform="rotate(-50,-90,10)"/>
+    <!-- right petals -->
+    <ellipse cx="50" cy="-20" rx="26" ry="62" transform="rotate(25,50,-20)"/>
+    <ellipse cx="90" cy="10" rx="22" ry="52" transform="rotate(50,90,10)"/>
+  </g>
+  <!-- Text -->
+  <text x="256" y="380" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="800" font-size="72" fill="white" opacity="0.95">Serenity</text>
+</svg>
