@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "build:android": "bash scripts/build-android-apk.sh"
+    "build:android": "bash scripts/build-android-apk.sh",
+    "optimize:android-icon": "node scripts/optimize-android-icon.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.2",
