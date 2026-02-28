@@ -120,14 +120,15 @@ const StressVoiceSession: React.FC<StressVoiceSessionProps> = ({ onCompleteStres
 
   const startSession = async () => {
     try {
-      if (!(process.env as any).HAS_GEMINI_KEY) {
-        setStatusMessage('語音測評需要 Gemini API Key，請在 .env.local 設定 GEMINI_API_KEY');
+      const geminiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
+      if (!geminiKey) {
+        setStatusMessage('語音測評需要 Gemini API Key，請在 .env.local 設定 VITE_GEMINI_API_KEY');
         return;
       }
       setIsConnecting(true);
       setStatusMessage('正在連接 AI 諮詢師...');
 
-      const ai = new GoogleGenAI({ apiKey: '' });
+      const ai = new GoogleGenAI({ apiKey: geminiKey });
       
       const outCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       const inCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
