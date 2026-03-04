@@ -13,7 +13,15 @@ export const MOOD_CONFIG: Record<Mood, { emoji: string; color: string; label: st
 };
 
 export const EXERCISES: RelaxationExercise[] = [
-  { id: '1', title: '深腹式呼吸', duration: '3 分鐘', category: 'Breathing', icon: '🌬️', color: 'bg-cyan-100 text-cyan-700' },
+  { 
+    id: '1', 
+    title: '深腹式呼吸', 
+    duration: '3 分鐘', 
+    category: 'Breathing', 
+    icon: '🌬️', 
+    color: 'bg-cyan-100 text-cyan-700',
+    audioUrl: '/audio/breathing-guide.mp3'
+  },
   { 
     id: '2', 
     title: '森林微風', 
@@ -21,7 +29,7 @@ export const EXERCISES: RelaxationExercise[] = [
     category: 'Meditation', 
     icon: '🌲', 
     color: 'bg-emerald-100 text-emerald-700',
-    audioUrl: 'https://assets.mixkit.co/sfx/preview/mixkit-wind-in-trees-1174.mp3'
+    audioUrl: '/audio/forest-wind.mp3'
   },
   { 
     id: '3', 
@@ -30,7 +38,7 @@ export const EXERCISES: RelaxationExercise[] = [
     category: 'Meditation', 
     icon: '🌊', 
     color: 'bg-blue-100 text-blue-700',
-    audioUrl: 'https://assets.mixkit.co/sfx/preview/mixkit-sea-waves-loop-1196.mp3'
+    audioUrl: '/audio/ocean-waves.mp3'
   },
   { 
     id: '4', 
@@ -39,7 +47,7 @@ export const EXERCISES: RelaxationExercise[] = [
     category: 'Meditation', 
     icon: '🍂', 
     color: 'bg-amber-100 text-amber-700',
-    audioUrl: 'https://assets.mixkit.co/active_storage/sfx/1175/1175-preview.mp3'
+    audioUrl: '/audio/autumn-leaves.mp3'
   },
   { 
     id: '5', 
@@ -48,7 +56,7 @@ export const EXERCISES: RelaxationExercise[] = [
     category: 'Meditation', 
     icon: '🌧️', 
     color: 'bg-slate-100 text-slate-700',
-    audioUrl: 'https://assets.mixkit.co/sfx/preview/mixkit-light-rain-loop-2393.mp3'
+    audioUrl: '/audio/summer-rain.mp3'
   },
   { 
     id: '6', 
@@ -57,7 +65,7 @@ export const EXERCISES: RelaxationExercise[] = [
     category: 'Meditation', 
     icon: '🥣', 
     color: 'bg-purple-100 text-purple-700',
-    audioUrl: 'https://assets.mixkit.co/sfx/preview/mixkit-meditation-bowl-single-hit-2093.mp3'
+    audioUrl: '/audio/singing-bowl.mp3'
   },
 ];
 

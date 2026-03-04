@@ -39,3 +39,18 @@ export interface RelaxationExercise {
   color: string;
   audioUrl?: string;
 }
+
+/** 對話記憶：單條訊息 */
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: number;
+}
+
+/** 長期記憶：關於用戶的一句話事實 */
+export interface MemoryFact {
+  id: string;
+  factText: string;
+  createdAt: number;
+}

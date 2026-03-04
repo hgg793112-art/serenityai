@@ -3,11 +3,11 @@ import React, { useMemo, useState } from 'react';
 import { MoodLogEntry, HealthMetric, AIInsight, Mood } from '../types';
 import { MOOD_CONFIG, ICONS, HedgehogIP, StressBar } from '../constants';
 import DailyTasks from './DailyTasks';
-import XiaoningChat from './XiaoningChat';
-import { getDailyChatDone, getDailyRelaxDone } from '../lib/dailyTaskStorage';
+import ChatWithXiaoning from './ChatWithXiaoning';
+import { setDailyChatDone, getDailyChatDone, getDailyRelaxDone } from '../lib/dailyTaskStorage';
 import { getConsecutiveDays } from '../lib/streak';
 
-type TabId = 'dashboard' | 'stress' | 'relax' | 'mood' | 'health';
+type TabId = 'dashboard' | 'relax' | 'health';
 
 interface DashboardProps {
   moodLogs: MoodLogEntry[];
@@ -78,20 +78,13 @@ const Dashboard: React.FC<DashboardProps> = ({ moodLogs, healthData, onTabChange
     return { label: '需要放鬆', emoji: '🌧️', bg: 'from-rose-100/50 to-violet-100/30' };
   }, [avgStress]);
 
-  const todayStr = new Date().toDateString();
-  const moodToday = moodLogs.some(log => new Date(log.timestamp).toDateString() === todayStr);
-  const todayEnergy = [moodToday, getDailyChatDone(), getDailyRelaxDone()].filter(Boolean).length;
+  const todayEnergy = [getDailyChatDone(), getDailyRelaxDone()].filter(Boolean).length;
   const streak = getConsecutiveDays(moodLogs);
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-700">
       {showChat && (
-        <XiaoningChat
-          moodLogs={moodLogs}
-          onClose={() => setShowChat(false)}
-          onGoMood={() => onTabChange('mood')}
-          onGoRelax={() => onTabChange('relax')}
-        />
+        <ChatWithXiaoning moodLogs={moodLogs} onBack={() => setShowChat(false)} />
       )}
 
       <section className={`rounded-[2.5rem] p-5 border border-violet-100/40 bg-gradient-to-br ${islandWeather.bg}`}>
@@ -100,8 +93,8 @@ const Dashboard: React.FC<DashboardProps> = ({ moodLogs, healthData, onTabChange
           <span className="text-2xl" title={islandWeather.label}>{islandWeather.emoji}</span>
         </div>
         <p className="text-slate-600 text-xs mt-1 font-medium">島上天氣反映你的內心狀態 · {islandWeather.label}</p>
-        <p className="text-slate-500 text-xs mt-2 font-bold">今日寧靜能量：{todayEnergy}/3</p>
-        {todayEnergy === 3 && (
+        <p className="text-slate-500 text-xs mt-2 font-bold">今日寧靜能量：{todayEnergy}/2</p>
+        {todayEnergy === 2 && (
           <p className="text-emerald-600 text-xs mt-1 font-black">今日任務全完成！島上會慢慢變美。</p>
         )}
         {streak >= 3 && (
@@ -149,7 +142,7 @@ const Dashboard: React.FC<DashboardProps> = ({ moodLogs, healthData, onTabChange
         </div>
 
         <button
-          onClick={() => setShowChat(true)}
+          onClick={() => { setDailyChatDone(); setShowChat(true); }}
           className="mt-6 w-full py-3 rounded-2xl font-bold text-white shadow-lg"
           style={{ background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' }}
         >
@@ -158,9 +151,7 @@ const Dashboard: React.FC<DashboardProps> = ({ moodLogs, healthData, onTabChange
       </section>
 
       <DailyTasks
-        moodLogs={moodLogs}
-        onGoMood={() => onTabChange('mood')}
-        onGoChat={() => setShowChat(true)}
+        onGoChat={() => { setDailyChatDone(); setShowChat(true); }}
         onGoRelax={() => onTabChange('relax')}
       />
 

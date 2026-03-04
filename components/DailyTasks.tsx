@@ -1,28 +1,18 @@
 import React from 'react';
-import { MoodLogEntry } from '../types';
 import { getDailyChatDone, getDailyRelaxDone } from '../lib/dailyTaskStorage';
 
 interface DailyTasksProps {
-  moodLogs: MoodLogEntry[];
-  onGoMood: () => void;
   onGoChat: () => void;
   onGoRelax: () => void;
 }
 
-function hasMoodLogToday(logs: MoodLogEntry[]): boolean {
-  const today = new Date().toDateString();
-  return logs.some(log => new Date(log.timestamp).toDateString() === today);
-}
-
-const DailyTasks: React.FC<DailyTasksProps> = ({ moodLogs, onGoMood, onGoChat, onGoRelax }) => {
-  const moodDone = hasMoodLogToday(moodLogs);
+const DailyTasks: React.FC<DailyTasksProps> = ({ onGoChat, onGoRelax }) => {
   const chatDone = getDailyChatDone();
   const relaxDone = getDailyRelaxDone();
-  const total = 3;
-  const done = [moodDone, chatDone, relaxDone].filter(Boolean).length;
+  const total = 2;
+  const done = [chatDone, relaxDone].filter(Boolean).length;
 
   const tasks = [
-    { id: 'mood', label: '記錄今天的心情', done: moodDone, onGo: onGoMood },
     { id: 'chat', label: '和小寧聊一聊', done: chatDone, onGo: onGoChat },
     { id: 'relax', label: '完成一次放鬆', done: relaxDone, onGo: onGoRelax },
   ];

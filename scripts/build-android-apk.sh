@@ -6,6 +6,15 @@ set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+# 若未設定，嘗試使用 Homebrew 路徑（Mac）
+if [ -z "$JAVA_HOME" ] && [ -d "/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home" ]; then
+  export JAVA_HOME="/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
+fi
+if [ -z "$ANDROID_HOME" ] && [ -d "/opt/homebrew/share/android-commandlinetools" ]; then
+  export ANDROID_HOME="/opt/homebrew/share/android-commandlinetools"
+  export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+fi
+
 echo "→ 建置網頁..."
 npm run build
 
@@ -14,7 +23,7 @@ npx cap sync android
 
 echo "→ 建置 Android APK..."
 cd android
-./gradlew assembleDebug
+./gradlew assembleDebug --no-daemon
 
 APK="$ROOT/android/app/build/outputs/apk/debug/app-debug.apk"
 echo ""

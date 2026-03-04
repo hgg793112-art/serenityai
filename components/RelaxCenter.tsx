@@ -1,16 +1,31 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { EXERCISES, HedgehogIP } from '../constants';
 import { RelaxationExercise } from '../types';
 import { setDailyRelaxDone } from '../lib/dailyTaskStorage';
+import HealingChat from './HealingChat';
 
 const RelaxCenter: React.FC = () => {
   const [activeExercise, setActiveExercise] = useState<RelaxationExercise | null>(null);
   const [isBreathing, setIsBreathing] = useState(false);
+  const [showHealingChat, setShowHealingChat] = useState(false);
+  const [volume, setVolume] = useState(0.6);
+  const [audioError, setAudioError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const preloadedAudios = useRef<Map<string, HTMLAudioElement>>(new Map());
+
+  useEffect(() => {
+    EXERCISES.forEach(ex => {
+      if (ex.audioUrl && !preloadedAudios.current.has(ex.audioUrl)) {
+        const audio = new Audio(ex.audioUrl);
+        audio.preload = 'metadata';
+        preloadedAudios.current.set(ex.audioUrl, audio);
+      }
+    });
+  }, []);
 
   const startExercise = (ex: RelaxationExercise) => {
     setDailyRelaxDone();
+    setAudioError(false);
     if (ex.category === 'Breathing') {
       setIsBreathing(true);
     }
@@ -18,21 +33,66 @@ const RelaxCenter: React.FC = () => {
     
     if (ex.audioUrl) {
       if (audioRef.current) {
-        audioRef.current.pause();
+        const fadeOut = setInterval(() => {
+          if (audioRef.current && audioRef.current.volume > 0.05) {
+            audioRef.current.volume = Math.max(0, audioRef.current.volume - 0.1);
+          } else {
+            if (audioRef.current) audioRef.current.pause();
+            clearInterval(fadeOut);
+          }
+        }, 50);
       }
+      
       const audio = new Audio(ex.audioUrl);
       audio.loop = true;
-      audio.play().catch(e => console.error("Audio playback failed", e));
+      audio.volume = 0;
+      audio.preload = 'auto';
+      audio.addEventListener('error', () => setAudioError(true));
+      audio.addEventListener('canplaythrough', () => {
+        audio.play().then(() => {
+          let currentVol = 0;
+          const fadeIn = setInterval(() => {
+            if (currentVol < volume) {
+              currentVol = Math.min(volume, currentVol + 0.05);
+              audio.volume = currentVol;
+            } else {
+              clearInterval(fadeIn);
+            }
+          }, 50);
+        }).catch(e => {
+          console.error("Audio playback failed", e);
+          setAudioError(true);
+        });
+      });
+      audio.load();
       audioRef.current = audio;
     }
   };
 
+  useEffect(() => {
+    if (audioRef.current && !audioRef.current.paused) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
+
   const stopExercise = () => {
-    setActiveExercise(null);
-    setIsBreathing(false);
     if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
+      const fadeOut = setInterval(() => {
+        if (audioRef.current && audioRef.current.volume > 0.05) {
+          audioRef.current.volume = Math.max(0, audioRef.current.volume - 0.08);
+        } else {
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+          }
+          clearInterval(fadeOut);
+          setActiveExercise(null);
+          setIsBreathing(false);
+        }
+      }, 40);
+    } else {
+      setActiveExercise(null);
+      setIsBreathing(false);
     }
   };
 
@@ -47,6 +107,7 @@ const RelaxCenter: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6 animate-in slide-in-from-right duration-500">
+      {showHealingChat && <HealingChat onClose={() => setShowHealingChat(false)} />}
       <div className="glass-warm rounded-[2.5rem] p-10 text-center relative overflow-hidden border border-violet-100/40">
         <div className="absolute top-0 left-0 p-6">
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-black" style={{ background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' }}>AI</div>
@@ -60,7 +121,11 @@ const RelaxCenter: React.FC = () => {
           來自寧靜島的放鬆泉。做完呼吸或冥想，島上會更美。「最好的節奏，是讓一切自然發生。」
         </p>
         
-        <button className="px-10 py-4 rounded-full text-white font-black text-xs shadow-lg hover:scale-105 active:scale-95 transition-all tracking-widest" style={{ background: 'linear-gradient(145deg, #7c6ba8 0%, #6b5b96 100%)' }}>
+        <button
+          onClick={() => setShowHealingChat(true)}
+          className="px-10 py-4 rounded-full text-white font-black text-xs shadow-lg hover:scale-105 active:scale-95 transition-all tracking-widest"
+          style={{ background: 'linear-gradient(145deg, #7c6ba8 0%, #6b5b96 100%)' }}
+        >
           開啟療癒對話
         </button>
       </div>
@@ -118,6 +183,21 @@ const RelaxCenter: React.FC = () => {
               </div>
 
               <HedgehogIP stressLevel={10} size={100} />
+
+              {activeExercise.audioUrl && (
+                <div className="w-full max-w-xs flex items-center gap-3 px-4">
+                  <svg className="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    value={volume * 100} 
+                    onChange={(e) => setVolume(Number(e.target.value) / 100)}
+                    className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
+                    style={{ background: `linear-gradient(to right, #9b87c4 0%, #9b87c4 ${volume * 100}%, #e2e8f0 ${volume * 100}%, #e2e8f0 100%)` }}
+                  />
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center gap-12 text-center">
@@ -137,12 +217,27 @@ const RelaxCenter: React.FC = () => {
               <div>
                 <h2 className="text-4xl font-black text-slate-800 mb-2">{activeExercise.title}</h2>
                 <p className="text-slate-400 font-black tracking-[0.3em] uppercase text-xs">
-                  {activeExercise.audioUrl ? '沉浸療癒音頻中' : '沉浸模式已開啟'}
+                  {activeExercise.audioUrl ? (audioError ? '音頻載入中...' : '沉浸療癒音頻中') : '沉浸模式已開啟'}
                 </p>
               </div>
               <div className="w-64 h-3 bg-slate-100 rounded-full overflow-hidden border border-white">
                 <div className="h-full bg-slate-900 animate-[shimmer_3s_infinite]" style={{ width: '40%' }}></div>
               </div>
+              {activeExercise.audioUrl && (
+                <div className="w-full max-w-xs flex items-center gap-3 px-4">
+                  <svg className="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    value={volume * 100} 
+                    onChange={(e) => setVolume(Number(e.target.value) / 100)}
+                    className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
+                    style={{ background: `linear-gradient(to right, #9b87c4 0%, #9b87c4 ${volume * 100}%, #e2e8f0 ${volume * 100}%, #e2e8f0 100%)` }}
+                  />
+                  <span className="text-xs text-slate-400 font-bold w-8">{Math.round(volume * 100)}%</span>
+                </div>
+              )}
               <button 
                 onClick={stopExercise}
                 className="text-white px-12 py-5 rounded-full font-black text-sm shadow-xl tracking-widest"

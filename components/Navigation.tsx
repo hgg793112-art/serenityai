@@ -3,16 +3,14 @@ import React from 'react';
 import { ICONS } from '../constants';
 
 interface NavigationProps {
-  activeTab: 'dashboard' | 'stress' | 'relax' | 'mood' | 'health';
-  onTabChange: (tab: 'dashboard' | 'stress' | 'relax' | 'mood' | 'health') => void;
+  activeTab: 'dashboard' | 'relax' | 'health';
+  onTabChange: (tab: 'dashboard' | 'relax' | 'health') => void;
 }
 
 const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
   const tabs = [
     { id: 'dashboard', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>, label: '首頁' },
-    { id: 'stress', icon: <ICONS.Microphone />, label: '壓力' },
     { id: 'relax', icon: <ICONS.Lotus />, label: '放鬆' },
-    { id: 'mood', icon: <ICONS.Brain />, label: '心情' },
     { id: 'health', icon: <ICONS.Activity />, label: '數據' },
   ] as const;
 

@@ -25,3 +25,9 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Build / local artifacts
+app-debug.apk
+_actions_logs/
+_run5_logs/
+*.zip

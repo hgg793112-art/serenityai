@@ -15,9 +15,23 @@ View your app in AI Studio: https://ai.studio/apps/drive/11PVPbLQvLfFtO_LDGqq-AW
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Set the API keys in [.env.local](.env.local):
+   - `VITE_DASHSCOPE_API_KEY`: 千問 API 金鑰（對話功能必需）
+   - `VITE_GEMINI_API_KEY`: Gemini API 金鑰（可選，作為備用）
 3. Run the app:
    `npm run dev`
+
+## 功能說明
+
+### 🎵 療癒音頻
+- 所有放鬆練習均配備高品質音頻（128-256 kbps）
+- 支援音量調節和淡入淡出效果
+- 音頻檔案位於 `public/audio/`，詳見 `public/audio/README.md`
+- 測試工具：訪問 `http://localhost:3000/audio/test-audio.html`
+
+### 💬 AI 對話
+- **和小寧聊聊**：使用千問 API，帶記憶功能
+- **療癒對話**：專注於正念、呼吸、情緒安撫
 
 ## 使用 Supabase 線上資料庫
 

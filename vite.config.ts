@@ -2,6 +2,43 @@ import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import type { Plugin } from 'vite';
+
+function qwenApiPlugin(apiKey: string): Plugin {
+  return {
+    name: 'qwen-api-proxy',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (req.url === '/api/qwen-chat' && req.method === 'POST') {
+          let body = '';
+          req.on('data', chunk => { body += chunk.toString(); });
+          req.on('end', async () => {
+            try {
+              const { messages, max_tokens = 400, temperature = 0.85 } = JSON.parse(body);
+              const apiRes = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${apiKey}`,
+                },
+                body: JSON.stringify({ model: 'qwen-turbo', messages, max_tokens, temperature }),
+              });
+              const data = await apiRes.json();
+              res.setHeader('Content-Type', 'application/json');
+              res.statusCode = apiRes.status;
+              res.end(JSON.stringify(data));
+            } catch (err) {
+              res.statusCode = 500;
+              res.end(JSON.stringify({ error: '代理錯誤' }));
+            }
+          });
+        } else {
+          next();
+        }
+      });
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
@@ -12,6 +49,7 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [
         react(),
+        ...(env.VITE_DASHSCOPE_API_KEY ? [qwenApiPlugin(env.VITE_DASHSCOPE_API_KEY)] : []),
         VitePWA({
           registerType: 'autoUpdate',
           includeAssets: ['icon.svg', 'apple-touch-icon.png'],
