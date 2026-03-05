@@ -24,12 +24,12 @@ export const EXERCISES: RelaxationExercise[] = [
   },
   { 
     id: '2', 
-    title: '森林微風', 
+    title: '夏日蟲鳴', 
     duration: '10 分鐘', 
     category: 'Meditation', 
-    icon: '🌲', 
+    icon: '🦗', 
     color: 'bg-emerald-100 text-emerald-700',
-    audioUrl: '/audio/forest-wind.mp3'
+    audioUrl: '/audio/rainforest.mp3'
   },
   { 
     id: '3', 
@@ -81,6 +81,12 @@ export const ICONS = {
   ),
   Lotus: () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 10c-3 0-4.5 3-4.5 3s1.5 3 4.5 3 4.5-3 4.5-3-1.5-3-4.5-3Z"/><path d="M12 10c0-3-3-4.5-3-4.5s-3 1.5-3 4.5 3 4.5 3 4.5 3-1.5 3-4.5Z"/><path d="M12 10c0-3 3-4.5 3-4.5s3 1.5 3 4.5-3 4.5-3 4.5-3-1.5-3-4.5Z"/><path d="M12 22s-3-3-3-6 3-6 3-6 3 3 3 6-3 6-3 6Z"/></svg>
+  ),
+  Chat: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  ),
+  Relax: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8.4a7 7 0 0 1-14 0c0-3.36 1.23-6.23 3-7.8L11 13z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
   )
 };
 
