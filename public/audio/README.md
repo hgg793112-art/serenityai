@@ -8,8 +8,9 @@
 |---------|------|------|------|
 | breathing-guide.mp3 | 深腹式呼吸背景音 | 本地 | - |
 | forest-wind.mp3 | 森林微風冥想 (3.4MB, 高品質) | 本地 | - |
-| ocean-waves.mp3 | 海浪療癒 (754KB) | SoundBible | Attribution 3.0 |
-| autumn-leaves.mp3 | 秋葉沙沙 (403KB) | 本地 | - |
+| ocean-waves.mp3 | 海浪療癒 (約 6.4MB, 2:46) | Big Sound Bank #0698 | CC0 公有領域 |
+| autumn-leaves.mp3 | 秋葉沙沙 (約 1.5MB, 1:05，易循環) | Big Sound Bank #2889 Feet in leaves | CC0 公有領域 |
+| leaves-rustling.mp3 | 葉子沙沙備用 | 本地 | - |
 | summer-rain.mp3 | 夏日細雨 (494KB) | 本地 | - |
 | rain.mp3 | 雨聲 (1.0MB) | SoundBible | Attribution 3.0 |
 | singing-bowl.mp3 | 冥想頌缽 (298KB) | SoundBible | Attribution 3.0 |

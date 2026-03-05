@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>AI 購物決策 - 預覽</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; background: #f1f5f9; color: #1e293b; }
+    .header { background: #2563eb; color: #fff; padding: 14px 16px; font-weight: 600; font-size: 18px; }
+    .screen { padding: 16px; max-width: 420px; margin: 0 auto; min-height: 100vh; }
+    .input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .input { flex: 1; padding: 12px 14px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 16px; background: #fff; }
+    .btn { background: #2563eb; color: #fff; padding: 12px 20px; border-radius: 10px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; min-width: 80px; }
+    .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+    .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+    .card-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: #1e293b; }
+    .reason { font-size: 14px; color: #64748b; margin-bottom: 12px; }
+    .product-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+    .product-name { font-size: 15px; color: #334155; }
+    .product-price { font-size: 15px; font-weight: 600; color: #2563eb; }
+    .product-reason { font-size: 13px; color: #94a3b8; margin-bottom: 6px; }
+    .hint { color: #64748b; text-align: center; margin-top: 24px; font-size: 15px; }
+    .profile-link { display: inline-block; margin-top: 24px; color: #2563eb; font-size: 15px; cursor: pointer; }
+    .block { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+    .label { font-size: 16px; font-weight: 600; color: #1e293b; margin-bottom: 6px; }
+    .value { font-size: 22px; color: #2563eb; margin-bottom: 4px; }
+    .hint-small { font-size: 13px; color: #94a3b8; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab { padding: 8px 16px; border-radius: 8px; background: #e2e8f0; cursor: pointer; }
+    .tab.active { background: #2563eb; color: #fff; }
+    #profileScreen { display: none; }
+  </style>
+</head>
+<body>
+  <div class="header">AI 購物決策</div>
+  <div class="screen">
+    <div id="homeScreen">
+      <div class="input-row">
+        <input class="input" type="text" placeholder="輸入需求，例如：3000以內輕薄本" value="3000以內輕薄本" />
+        <button class="btn">提交</button>
+      </div>
+      <p class="hint">輸入需求後點擊「提交」獲取三套決策方案</p>
+      <div id="solutions"></div>
+      <a class="profile-link" onclick="showProfile()">個人畫像</a>
+    </div>
+    <div id="profileScreen">
+      <div class="block">
+        <div class="label">價格敏感指數</div>
+        <div class="value">0.50</div>
+        <div class="hint-small">0=不敏感，1=非常敏感</div>
+      </div>
+      <div class="block">
+        <div class="label">衝動指數</div>
+        <div class="value">0.50</div>
+        <div class="hint-small">0=理性，1=較衝動</div>
+      </div>
+      <div class="block">
+        <div class="label">品類偏好權重</div>
+        <div class="hint-small" style="margin-top:8px">暫無偏好數據</div>
+      </div>
+      <a class="profile-link" onclick="showHome()">← 返回首頁</a>
+    </div>
+  </div>
+  <script>
+    function showProfile() {
+      document.getElementById('homeScreen').style.display = 'none';
+      document.getElementById('profileScreen').style.display = 'block';
+    }
+    function showHome() {
+      document.getElementById('profileScreen').style.display = 'none';
+      document.getElementById('homeScreen').style.display = 'block';
+    }
+    document.querySelector('.btn').onclick = function() {
+      var el = document.getElementById('solutions');
+      el.innerHTML = ''
+        + '<div class="card"><div class="card-title">方案 A · 穩妥均衡</div><div class="reason">預算內均衡配置，適合多數人。</div>'
+        + '<div class="product-row"><span class="product-name">宏碁非凡S3</span><span class="product-price">¥2999</span></div><div class="product-reason">性價比高、輕薄</div>'
+        + '<div class="product-row"><span class="product-name">RedmiBook Pro 14</span><span class="product-price">¥3299</span></div><div class="product-reason">螢幕與續航均衡</div></div>'
+        + '<div class="card"><div class="card-title">方案 B · 性價比</div><div class="reason">同價位更強配置。</div>'
+        + '<div class="product-row"><span class="product-name">機械革命無界14</span><span class="product-price">¥2799</span></div><div class="product-reason">預算內性能最佳</div></div>'
+        + '<div class="card"><div class="card-title">方案 C · 升級之選</div><div class="reason">略超預算換更好體驗。</div>'
+        + '<div class="product-row"><span class="product-name">惠普戰66 輕薄本</span><span class="product-price">¥3699</span></div><div class="product-reason">品牌與售後更好</div></div>';
+    };
+  </script>
+</body>
+</html>

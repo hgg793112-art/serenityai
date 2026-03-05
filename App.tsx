@@ -7,6 +7,7 @@ import HealthTrends from './components/HealthTrends';
 import RelaxCenter from './components/RelaxCenter';
 import Navigation from './components/Navigation';
 import Onboarding from './components/Onboarding';
+import HealingChat from './components/HealingChat';
 
 function rowToMoodLog(row: { id: string; timestamp: number; mood: string; note?: string; stress_level: number }): MoodLogEntry {
   return {
@@ -18,11 +19,14 @@ function rowToMoodLog(row: { id: string; timestamp: number; mood: string; note?:
   };
 }
 
+type OverlayPage = 'healing-chat' | null;
+
 const App: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(() => {
     return !localStorage.getItem('onboarding_completed');
   });
   const [activeTab, setActiveTab] = useState<'dashboard' | 'relax' | 'health'>('dashboard');
+  const [overlayPage, setOverlayPage] = useState<OverlayPage>(null);
   const [moodLogs, setMoodLogs] = useState<MoodLogEntry[]>(() => {
     const saved = localStorage.getItem('mood_logs');
     return saved ? JSON.parse(saved) : [];
@@ -105,11 +109,23 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <Dashboard moodLogs={moodLogs} healthData={healthData} onTabChange={setActiveTab} />;
-      case 'relax': return <RelaxCenter />;
+      case 'relax': return <RelaxCenter onOpenHealingChat={() => setOverlayPage('healing-chat')} />;
       case 'health': return <HealthTrends healthData={healthData} />;
       default: return <Dashboard moodLogs={moodLogs} healthData={healthData} onTabChange={setActiveTab} />;
     }
   };
+
+  // 療癒對話以獨立新頁面顯示，取代整個主畫面
+  if (overlayPage === 'healing-chat') {
+    return (
+      <>
+        {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
+        <div className="min-h-screen flex flex-col max-w-lg mx-auto font-inter selection:bg-violet-100" style={{ background: 'linear-gradient(180deg, #faf8ff 0%, #f0ebf8 50%, #ebe4f5 100%)' }}>
+          <HealingChat onClose={() => setOverlayPage(null)} />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

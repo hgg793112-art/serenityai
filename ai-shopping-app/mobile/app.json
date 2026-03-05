@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "AI購物決策",
+    "slug": "ai-shopping-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.aishopping.app"
+    },
+    "android": {
+      "package": "com.aishopping.app"
+    }
+  }
+}

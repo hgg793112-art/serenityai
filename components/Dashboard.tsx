@@ -4,7 +4,7 @@ import { MoodLogEntry, HealthMetric, AIInsight, Mood } from '../types';
 import { MOOD_CONFIG, ICONS, HedgehogIP, StressBar } from '../constants';
 import DailyTasks from './DailyTasks';
 import ChatWithXiaoning from './ChatWithXiaoning';
-import { setDailyChatDone, getDailyChatDone, getDailyRelaxDone } from '../lib/dailyTaskStorage';
+import { setDailyChatDone } from '../lib/dailyTaskStorage';
 import { getConsecutiveDays } from '../lib/streak';
 
 type TabId = 'dashboard' | 'relax' | 'health';
@@ -78,7 +78,6 @@ const Dashboard: React.FC<DashboardProps> = ({ moodLogs, healthData, onTabChange
     return { label: '需要放鬆', emoji: '🌧️', bg: 'from-rose-100/50 to-violet-100/30' };
   }, [avgStress]);
 
-  const todayEnergy = [getDailyChatDone(), getDailyRelaxDone()].filter(Boolean).length;
   const streak = getConsecutiveDays(moodLogs);
 
   return (
@@ -93,20 +92,12 @@ const Dashboard: React.FC<DashboardProps> = ({ moodLogs, healthData, onTabChange
           <span className="text-2xl" title={islandWeather.label}>{islandWeather.emoji}</span>
         </div>
         <p className="text-slate-600 text-xs mt-1 font-medium">島上天氣反映你的內心狀態 · {islandWeather.label}</p>
-        <p className="text-slate-500 text-xs mt-2 font-bold">今日寧靜能量：{todayEnergy}/2</p>
-        {todayEnergy === 2 && (
-          <p className="text-emerald-600 text-xs mt-1 font-black">今日任務全完成！島上會慢慢變美。</p>
-        )}
         {streak >= 3 && (
           <p className="text-violet-600 text-xs mt-1 font-black">連續 {streak} 天記錄，小寧很開心～</p>
         )}
       </section>
 
       <section className="glass-warm rounded-[2.5rem] p-8 text-center relative overflow-hidden flex flex-col items-center border border-violet-100/40">
-        <div className="absolute top-0 right-0 p-6">
-          <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#9b87c4' }}>寧靜島 · 小寧</span>
-        </div>
-        
         <p className="text-slate-500 text-sm font-medium mb-4">嗨，你今天的狀態</p>
         
         <button 

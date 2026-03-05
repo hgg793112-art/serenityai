@@ -64,8 +64,8 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
   const stressLevel = moodLogs[0]?.stressLevel ?? 50;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white/95 backdrop-blur-sm animate-in fade-in duration-300">
-      <header className="flex items-center gap-3 p-4 border-b border-violet-100/50">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white animate-in fade-in duration-300">
+      <header className="flex items-center gap-3 p-4 border-b border-violet-100/50 bg-white">
         <button
           type="button"
           onClick={onBack}
@@ -128,7 +128,7 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
         <div ref={listEndRef} />
       </div>
 
-      <div className="p-4 border-t border-violet-100/50">
+      <div className="p-4 border-t border-violet-100/50 bg-white">
         <div className="flex gap-2">
           <input
             type="text"

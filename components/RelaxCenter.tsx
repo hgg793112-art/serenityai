@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { EXERCISES, HedgehogIP } from '../constants';
 import { RelaxationExercise } from '../types';
 import { setDailyRelaxDone } from '../lib/dailyTaskStorage';
-import HealingChat from './HealingChat';
 
-const RelaxCenter: React.FC = () => {
+interface RelaxCenterProps {
+  onOpenHealingChat?: () => void;
+}
+
+const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat }) => {
   const [activeExercise, setActiveExercise] = useState<RelaxationExercise | null>(null);
   const [isBreathing, setIsBreathing] = useState(false);
-  const [showHealingChat, setShowHealingChat] = useState(false);
   const [volume, setVolume] = useState(0.6);
   const [audioError, setAudioError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -107,12 +109,7 @@ const RelaxCenter: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6 animate-in slide-in-from-right duration-500">
-      {showHealingChat && <HealingChat onClose={() => setShowHealingChat(false)} />}
       <div className="glass-warm rounded-[2.5rem] p-10 text-center relative overflow-hidden border border-violet-100/40">
-        <div className="absolute top-0 left-0 p-6">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-black" style={{ background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' }}>AI</div>
-        </div>
-        
         <div className="flex justify-center mb-6">
           <HedgehogIP stressLevel={15} size={140} />
         </div>
@@ -122,7 +119,7 @@ const RelaxCenter: React.FC = () => {
         </p>
         
         <button
-          onClick={() => setShowHealingChat(true)}
+          onClick={() => onOpenHealingChat?.()}
           className="px-10 py-4 rounded-full text-white font-black text-xs shadow-lg hover:scale-105 active:scale-95 transition-all tracking-widest"
           style={{ background: 'linear-gradient(145deg, #7c6ba8 0%, #6b5b96 100%)' }}
         >

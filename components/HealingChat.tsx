@@ -56,8 +56,8 @@ export default function HealingChat({ onClose }: HealingChatProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white/95 backdrop-blur-sm animate-in fade-in duration-300">
-      <header className="flex items-center gap-3 p-4 border-b border-violet-100/50">
+    <div className="flex-1 flex flex-col min-h-0 bg-white/95 backdrop-blur-sm animate-in fade-in duration-300">
+      <header className="flex-shrink-0 flex items-center gap-3 p-4 border-b border-violet-100/50 bg-white/80">
         <button
           type="button"
           onClick={onClose}
@@ -72,7 +72,7 @@ export default function HealingChat({ onClose }: HealingChatProps) {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && !loading && (
           <p className="text-center text-slate-500 text-sm py-8">
             在這裡可以聊聊心情、放鬆或正念～小寧會溫柔陪伴你。
@@ -120,7 +120,7 @@ export default function HealingChat({ onClose }: HealingChatProps) {
         <div ref={listEndRef} />
       </div>
 
-      <div className="p-4 border-t border-violet-100/50">
+      <div className="flex-shrink-0 p-4 border-t border-violet-100/50 bg-white/80">
         <div className="flex gap-2">
           <input
             type="text"

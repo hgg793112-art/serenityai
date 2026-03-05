@@ -1,0 +1,5 @@
+{
+  "name": "ai-shopping-app",
+  "private": true,
+  "description": "AI 購物決策助手 MVP - mobile (Expo) + server (Express+Prisma)"
+}

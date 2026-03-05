@@ -1,0 +1,72 @@
+---
+description: 打包/重新打包安卓 APK 的標準流程；遇類似請求直接依此處理
+globs: "**/android/**"
+alwaysApply: false
+---
+
+# 打包 / 重新打包 Android APK 流程
+
+當使用者要求「打包安卓 APK」「重新打包 APK」「至最新」「含新圖標」或類似表述時，依下列方式處理，無需再詢問。
+
+## 重新打包 APK（本機有改動、要產出新安裝包）
+
+1. **優先本機建置**（無需推送、最快）  
+   - 在專案根目錄執行：`npm run build:android`  
+   - 會依序：`npm run build` → `npx cap sync android` → `./gradlew assembleDebug`  
+   - 產出：`android/app/build/outputs/apk/debug/app-debug.apk`  
+   - 可選：複製到專案根目錄 `app-debug.apk` 方便分發。  
+   - 需已安裝：Node.js、**JDK 17 或 21**、Android SDK（`ANDROID_HOME`）；若本機無 Java/Android 環境則改用下方 CI 建置。
+
+2. **若需 CI 建置**（例如要從 GitHub 下載 Artifact、或本機無 Android 環境）  
+   - 依下方「打包至最新（含新圖標）」流程：推送 → 等 Actions 成功 → 下載 `app-debug-apk` Artifact → 解壓覆蓋專案內 `app-debug.apk`。
+
+---
+
+## 打包至最新（含新圖標）— 推送後由 CI 建置
+
+## 1. 確認狀態
+
+- 查詢遠端 `main` 最新 commit（GitHub API: `GET /repos/{owner}/{repo}/commits/main`）。
+- 確認本機是否有未推送的圖標/資源改動（`git status`、`git log origin/main..HEAD`）。
+
+## 2. 嘗試推送
+
+- 執行 `git push origin main`（或帶 Token 的 HTTPS URL）。
+- 若推送成功 → 會自動觸發 Build Android APK workflow，跳到步驟 4。
+
+## 3. 推送失敗時（網路逾時、HTTP 400、大檔案等）
+
+改用 **GitHub API** 上傳圖標相關檔案，不依賴本機 git push：
+
+- **圖標 PNG**（較大）：  
+  `PUT /repos/{owner}/{repo}/contents/android/app/src/main/res/drawable-nodpi/ic_launcher_foreground.png`  
+  body: `{"message":"...", "branch":"main", "content":"<base64>"}`（content 可從檔案讀取後 base64，body 用 `-d @file` 避免指令過長）。
+- **其餘資源**（XML、小檔）：  
+  同上 `PUT .../contents/{path}`，需更新時帶該檔案的 `sha`。
+- 若需**網頁操作**（例如手動觸發 workflow、下載）：用 **MCP Chrome DevTools** 打開 `https://github.com/{owner}/{repo}/actions`，登入由使用者處理，再由 AI 操作取得資訊或點擊。
+- 上傳完成後，遠端會產生新 commit，**Build Android APK** 會自動被觸發（或到 Actions 頁手動 Run workflow）。
+
+## 4. 等待建置完成
+
+- 輪詢 `GET /repos/{owner}/{repo}/actions/runs?per_page=1` 或指定 `run_id`，直到 `status: completed` 且 `conclusion: success`。
+- 建置約需 3～5 分鐘。
+
+## 5. 下載 APK 並寫入專案
+
+- `GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts` 取得 `app-debug-apk` 的 `id`。
+- `GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}/zip` 下載 zip（需 Authorization）。
+- 解壓出 `app-debug.apk`，覆蓋專案根目錄的 `app-debug.apk`，並可選同步到 `android/app/build/outputs/apk/debug/app-debug.apk`。
+
+## 6. 回覆使用者
+
+- 說明已取得「含新圖標」的最新 APK。
+- 給出安裝包路徑：專案根目錄 `app-debug.apk` 與（可選）`android/.../debug/app-debug.apk`。
+
+## 專案對應資訊（本專案）
+
+- Repo: `hgg793112-art/serenityai`
+- Workflow 名稱: Build Android APK
+- Artifact 名稱: app-debug-apk
+- 安裝包輸出路徑: 專案根目錄 `app-debug.apk`
+
+ Token 由使用者提供或已存在於對話/環境；勿將 Token 寫入規則或程式碼。

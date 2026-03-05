@@ -101,80 +101,94 @@ export const StressBar = ({ value }: { value: number }) => (
   </div>
 );
 
-/** 刺猬虛擬 IP：根據壓力等級顯示不同表情，Tolan 陪伴感 */
+/** 刺蝟小寧 IP：使用圖片底圖 + SVG 表情動效疊加 */
 export const HedgehogIP = ({ stressLevel = 20, size = 120 }: { stressLevel?: number; size?: number }) => {
   const isExcellent = stressLevel <= 30;
   const isCalm = stressLevel > 30 && stressLevel <= 60;
   const isAnxious = stressLevel > 60 && stressLevel <= 85;
   const isOverload = stressLevel > 85;
 
-  const bodyColor = isOverload ? '#e2e8f0' : isAnxious ? '#fef3c7' : isCalm ? '#c4b5a0' : '#b8a090';
-  const bellyColor = '#f5f0e8';
-
   return (
-    <div style={{ width: size, height: size }} className="relative flex items-center justify-center">
+    <div style={{ width: size, height: size, background: 'transparent' }} className="relative flex items-center justify-center">
       <style>{`
-        @keyframes hedgehog-blink { 0%, 88%, 100% { transform: scaleY(1); } 94% { transform: scaleY(0.08); } }
-        @keyframes hedgehog-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
-        @keyframes spine-float { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
+        @keyframes hg-blink { 0%,88%,100% { transform: scaleY(1); } 94% { transform: scaleY(0.05); } }
+        @keyframes hg-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.025); } }
+        @keyframes hg-wave { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+        @keyframes hg-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        @keyframes hg-sweat { 0%,70%,100% { opacity: 0; } 80% { opacity: 1; transform: translateY(0); } 95% { opacity: 0.3; transform: translateY(4px); } }
+        @keyframes hg-dizzy { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(10deg); } }
+        @keyframes hg-sad-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-1.5px); } 75% { transform: translateX(1.5px); } }
       `}</style>
+      {/* 底圖 */}
+      <img
+        src="/ip/hedgehog.png"
+        alt="小寧"
+        style={{ width: size, height: size, animation: isOverload ? 'hg-sad-shake 0.8s ease-in-out infinite' : isAnxious ? 'hg-dizzy 2s ease-in-out infinite' : isExcellent ? 'hg-bounce 2s ease-in-out infinite' : 'hg-breathe 3.5s ease-in-out infinite' }}
+        className={`object-contain drop-shadow-lg transition-all duration-700 ${isOverload ? 'grayscale-[40%] brightness-90' : isAnxious ? 'brightness-95 saturate-[0.85]' : ''}`}
+        draggable={false}
+      />
+      {/* 表情動效疊加層 */}
       <svg
         viewBox="0 0 100 100"
-        className="w-full h-full drop-shadow-xl transition-all duration-700"
-        style={{ animation: 'hedgehog-breathe 3.5s ease-in-out infinite' }}
+        className="absolute inset-0 w-full h-full pointer-events-none"
       >
-        {/* 背部刺 */}
-        {[12, 22, 32, 42, 52, 62, 72, 82].map((x, i) => (
-          <path
-            key={i}
-            d={`M${x} 28 L${x - 4} 52 L${x + 2} 50 Z`}
-            fill={isOverload ? '#94a3b8' : '#8B7355'}
-            className="transition-all duration-500"
-            style={{ animation: 'spine-float 2s ease-in-out infinite', animationDelay: `${i * 0.08}s` }}
-          />
-        ))}
-        {/* 身體橢圓 */}
-        <ellipse cx="52" cy="52" rx="38" ry="36" fill={bodyColor} className="transition-colors duration-700" />
-        <path d="M20 52 Q52 90 84 52 Q52 28 20 52" fill={bellyColor} className="transition-opacity duration-500" opacity="0.95" />
-        {/* 臉部：眼睛 + 鼻 + 嘴 */}
         {isExcellent && (
           <g>
-            <ellipse cx="42" cy="42" rx="6" ry="8" fill="#2d2a26" />
-            <ellipse cx="62" cy="42" rx="6" ry="8" fill="#2d2a26" />
-            <circle cx="43" cy="40" r="1.5" fill="white" opacity="0.9" />
-            <circle cx="63" cy="40" r="1.5" fill="white" opacity="0.9" />
-            <ellipse cx="52" cy="52" rx="4" ry="3" fill="#2d2a26" />
-            <path d="M45 62 Q52 68 60 62" stroke="#2d2a26" strokeWidth="2" fill="none" strokeLinecap="round" />
+            {/* 臉頰紅暈 */}
+            <circle cx="30" cy="58" r="5" fill="#f5a0a0" opacity="0.3" />
+            <circle cx="70" cy="58" r="5" fill="#f5a0a0" opacity="0.3" />
+            {/* 頭頂愛心 */}
+            <g style={{ animation: 'hg-bounce 1.5s ease-in-out infinite' }}>
+              <path d="M46 12 C44 8 38 8 38 13 C38 17 46 22 46 22 C46 22 54 17 54 13 C54 8 48 8 46 12Z" fill="#f28b8b" opacity="0.7" />
+            </g>
+            {/* 閃爍星星 */}
+            <g style={{ animation: 'hg-blink 2s ease-in-out infinite' }}>
+              <path d="M78 18 L80 14 L82 18 L86 20 L82 22 L80 26 L78 22 L74 20Z" fill="#fbbf24" opacity="0.6" />
+            </g>
           </g>
         )}
         {isCalm && (
           <g>
-            <g style={{ animation: 'hedgehog-blink 4s infinite', transformOrigin: '50% 42%' }}>
-              <path d="M38 42 Q42 38 46 42 Q42 46 38 42" fill="#2d2a26" />
-              <path d="M58 42 Q62 38 66 42 Q62 46 58 42" fill="#2d2a26" />
+            {/* 輕微紅暈 */}
+            <circle cx="30" cy="58" r="4" fill="#f5a0a0" opacity="0.2" />
+            <circle cx="70" cy="58" r="4" fill="#f5a0a0" opacity="0.2" />
+            {/* 音符飄動 */}
+            <g style={{ animation: 'hg-bounce 2.5s ease-in-out infinite' }}>
+              <text x="76" y="22" fontSize="10" fill="#9b87c4" opacity="0.6">&#9834;</text>
             </g>
-            <ellipse cx="52" cy="52" rx="4" ry="3" fill="#2d2a26" />
-            <path d="M46 60 Q52 64 58 60" stroke="#2d2a26" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+            {/* Zzz 飄出 */}
+            <g style={{ animation: 'hg-bounce 3s ease-in-out infinite', animationDelay: '0.5s' }}>
+              <text x="72" y="14" fontSize="7" fontWeight="bold" fill="#9b87c4" opacity="0.4">z</text>
+              <text x="78" y="10" fontSize="9" fontWeight="bold" fill="#9b87c4" opacity="0.5">Z</text>
+            </g>
           </g>
         )}
         {isAnxious && (
           <g>
-            <circle cx="42" cy="42" r="5" fill="#2d2a26" />
-            <circle cx="62" cy="42" r="5" fill="#2d2a26" />
-            <circle cx="41" cy="40" r="1" fill="white" />
-            <circle cx="61" cy="40" r="1" fill="white" />
-            <ellipse cx="52" cy="52" rx="3" ry="2.5" fill="#2d2a26" />
-            <path d="M46 62 L58 62" stroke="#2d2a26" strokeWidth="1.5" strokeLinecap="round" />
-            <circle cx="78" cy="35" r="4" fill="#94a3b8" opacity="0.9" className="animate-bounce" />
+            {/* 汗滴 */}
+            <g style={{ animation: 'hg-sweat 2s ease-in-out infinite' }}>
+              <path d="M76 28 Q78 22 80 28 Q78 32 76 28Z" fill="#7cb5e0" opacity="0.7" />
+            </g>
+            <g style={{ animation: 'hg-sweat 2s ease-in-out infinite 0.6s' }}>
+              <path d="M80 34 Q81.5 30 83 34 Q81.5 37 80 34Z" fill="#7cb5e0" opacity="0.5" />
+            </g>
+            {/* 驚嘆號 */}
+            <g style={{ animation: 'hg-bounce 0.8s ease-in-out infinite' }}>
+              <text x="44" y="12" fontSize="12" fontWeight="bold" fill="#e8a040" opacity="0.7">!</text>
+            </g>
           </g>
         )}
         {isOverload && (
           <g>
-            <path d="M38 38 L46 46 M46 38 L38 46" stroke="#64748b" strokeWidth="2" strokeLinecap="round" />
-            <path d="M58 38 L66 46 M66 38 L58 46" stroke="#64748b" strokeWidth="2" strokeLinecap="round" />
-            <ellipse cx="52" cy="52" rx="3" ry="2" fill="#64748b" />
-            <path d="M44 64 Q52 60 60 64" stroke="#64748b" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-            <circle cx="80" cy="32" r="5" fill="#cbd5e1" opacity="0.8" />
+            {/* 頭頂旋轉暈圈 */}
+            <g style={{ animation: 'hg-dizzy 1.5s linear infinite', transformOrigin: '50px 10px' }}>
+              <circle cx="38" cy="10" r="2.5" fill="#94a3b8" opacity="0.5" />
+              <circle cx="50" cy="6" r="2" fill="#b0bec5" opacity="0.5" />
+              <circle cx="62" cy="10" r="2.5" fill="#94a3b8" opacity="0.5" />
+            </g>
+            {/* 碎裂線 */}
+            <path d="M22 24 L26 20 L24 26" stroke="#94a3b8" strokeWidth="1" fill="none" opacity="0.4" />
+            <path d="M76 22 L80 18 L78 24" stroke="#94a3b8" strokeWidth="1" fill="none" opacity="0.4" />
           </g>
         )}
       </svg>

@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "/opt/homebrew/bin/npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"],
+      "env": {
+        "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin",
+        "HOME": "/Users/mac210"
+      }
+    },
+    "image-mcp": {
+      "command": "/opt/homebrew/bin/npx",
+      "args": ["-y", "image-mcp@latest"],
+      "env": {
+        "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin",
+        "HOME": "/Users/mac210",
+        "OPENAI_API_KEY": "<<您的 OpenAI API Key>>",
+        "REPLICATE_API_TOKEN": "<<選填>>",
+        "MCP_TIMEOUT": "120000"
+      },
+      "resetTimeoutOnProgress": true
+    },
+    "midjourney": {
+      "command": "uvx",
+      "args": ["midjourney-proxy-mcp"],
+      "env": {
+        "IMAGINEAPI_URL": "https://cl.imagineapi.dev",
+        "IMAGINEAPI_TOKEN": "<<您的 ImagineAPI Token>>"
+      }
+    }
+  }
+}
