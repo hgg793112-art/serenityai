@@ -101,94 +101,175 @@ export const StressBar = ({ value }: { value: number }) => (
   </div>
 );
 
-/** 刺蝟小寧 IP：使用圖片底圖 + SVG 表情動效疊加 */
-export const HedgehogIP = ({ stressLevel = 20, size = 120 }: { stressLevel?: number; size?: number }) => {
-  const isExcellent = stressLevel <= 30;
-  const isCalm = stressLevel > 30 && stressLevel <= 60;
-  const isAnxious = stressLevel > 60 && stressLevel <= 85;
-  const isOverload = stressLevel > 85;
+/**
+ * 刺蝟小寧 IP：根據壓力狀態分三段切換形象 + 微動效
+ *
+ * stressLevel 語義：身心狀態分數（越高越好）
+ *  0 – 35  壓力過載 → hedgehog-stressed.png
+ * 36 – 70  身心平穩 → hedgehog-calm.png
+ * 71 – 100 狀態優秀 → hedgehog.png
+ */
+export const HedgehogIP = ({ stressLevel = 50, size = 120 }: { stressLevel?: number; size?: number }) => {
+  const isOverload  = stressLevel <= 35;
+  const isCalm      = stressLevel > 35 && stressLevel <= 70;
+  const isExcellent = stressLevel > 70;
+
+  const imgSrc = isOverload
+    ? '/ip/hedgehog-stressed.png'
+    : isCalm
+      ? '/ip/hedgehog-calm.png'
+      : '/ip/hedgehog.png';
 
   return (
     <div style={{ width: size, height: size, background: 'transparent' }} className="relative flex items-center justify-center">
       <style>{`
-        @keyframes hg-blink { 0%,88%,100% { transform: scaleY(1); } 94% { transform: scaleY(0.05); } }
-        @keyframes hg-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.025); } }
-        @keyframes hg-wave { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
-        @keyframes hg-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-        @keyframes hg-sweat { 0%,70%,100% { opacity: 0; } 80% { opacity: 1; transform: translateY(0); } 95% { opacity: 0.3; transform: translateY(4px); } }
-        @keyframes hg-dizzy { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(10deg); } }
-        @keyframes hg-sad-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-1.5px); } 75% { transform: translateX(1.5px); } }
+        @keyframes hg-breathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.03); }
+        }
+        @keyframes hg-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+        @keyframes hg-bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+        @keyframes hg-glow-pulse {
+          0%, 100% { opacity: 0.3; transform: scale(0.95); }
+          50% { opacity: 0.6; transform: scale(1.05); }
+        }
+        @keyframes hg-glow-gold {
+          0%, 100% { opacity: 0.2; transform: scale(0.9); }
+          50% { opacity: 0.5; transform: scale(1.08); }
+        }
+        @keyframes hg-worry-shake {
+          0%, 100% { transform: translateX(0) rotate(0deg); }
+          20% { transform: translateX(-1.5px) rotate(-0.5deg); }
+          40% { transform: translateX(1.5px) rotate(0.5deg); }
+          60% { transform: translateX(-1px) rotate(-0.3deg); }
+          80% { transform: translateX(1px) rotate(0.3deg); }
+        }
+        @keyframes hg-sweat-drop {
+          0%, 60% { opacity: 0; transform: translateY(0); }
+          70% { opacity: 0.8; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(8px); }
+        }
+        @keyframes hg-heart-float {
+          0% { opacity: 0; transform: translateY(0) scale(0.5); }
+          30% { opacity: 0.8; transform: translateY(-6px) scale(1); }
+          100% { opacity: 0; transform: translateY(-18px) scale(0.6); }
+        }
+        @keyframes hg-sparkle {
+          0%, 100% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+          50% { opacity: 0.8; transform: scale(1) rotate(180deg); }
+        }
+        @keyframes hg-star-twinkle {
+          0%, 100% { opacity: 0.2; transform: scale(0.6); }
+          50% { opacity: 1; transform: scale(1.1); }
+        }
+        @keyframes hg-spiral {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
       `}</style>
-      {/* 底圖 */}
+
+      {/* 底光暈 */}
+      {isCalm && (
+        <div
+          className="absolute rounded-full"
+          style={{
+            width: size * 0.8, height: size * 0.3,
+            bottom: '2%',
+            background: 'radial-gradient(ellipse, rgba(180,160,220,0.25) 0%, transparent 70%)',
+            animation: 'hg-glow-pulse 3s ease-in-out infinite',
+          }}
+        />
+      )}
+      {isExcellent && (
+        <div
+          className="absolute rounded-full"
+          style={{
+            width: size * 0.85, height: size * 0.35,
+            bottom: '1%',
+            background: 'radial-gradient(ellipse, rgba(251,191,36,0.2) 0%, rgba(180,160,220,0.15) 50%, transparent 70%)',
+            animation: 'hg-glow-gold 2.5s ease-in-out infinite',
+          }}
+        />
+      )}
+
+      {/* 主圖 */}
       <img
-        src="/ip/hedgehog.png"
+        src={imgSrc}
         alt="小寧"
-        style={{ width: size, height: size, animation: isOverload ? 'hg-sad-shake 0.8s ease-in-out infinite' : isAnxious ? 'hg-dizzy 2s ease-in-out infinite' : isExcellent ? 'hg-bounce 2s ease-in-out infinite' : 'hg-breathe 3.5s ease-in-out infinite' }}
-        className={`object-contain drop-shadow-lg transition-all duration-700 ${isOverload ? 'grayscale-[40%] brightness-90' : isAnxious ? 'brightness-95 saturate-[0.85]' : ''}`}
+        style={{
+          width: size, height: size,
+          animation: isOverload
+            ? 'hg-worry-shake 1.2s ease-in-out infinite'
+            : isCalm
+              ? 'hg-breathe 3.5s ease-in-out infinite, hg-float 4s ease-in-out infinite'
+              : 'hg-bounce 2s ease-in-out infinite',
+          transition: 'filter 0.6s ease',
+        }}
+        className={`object-contain drop-shadow-lg ${isOverload ? 'saturate-[0.9]' : ''}`}
         draggable={false}
       />
-      {/* 表情動效疊加層 */}
-      <svg
-        viewBox="0 0 100 100"
-        className="absolute inset-0 w-full h-full pointer-events-none"
-      >
+
+      {/* SVG 動效疊加 */}
+      <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none">
+        {/* 狀態優秀：愛心 + 星星 + 光芒 */}
         {isExcellent && (
           <g>
-            {/* 臉頰紅暈 */}
-            <circle cx="30" cy="58" r="5" fill="#f5a0a0" opacity="0.3" />
-            <circle cx="70" cy="58" r="5" fill="#f5a0a0" opacity="0.3" />
-            {/* 頭頂愛心 */}
-            <g style={{ animation: 'hg-bounce 1.5s ease-in-out infinite' }}>
-              <path d="M46 12 C44 8 38 8 38 13 C38 17 46 22 46 22 C46 22 54 17 54 13 C54 8 48 8 46 12Z" fill="#f28b8b" opacity="0.7" />
+            <g style={{ animation: 'hg-heart-float 2.8s ease-out infinite' }}>
+              <path d="M72 18 C71 15 67 15 67 18 C67 21 72 24 72 24 C72 24 77 21 77 18 C77 15 73 15 72 18Z" fill="#f28b8b" opacity="0.8" />
             </g>
-            {/* 閃爍星星 */}
-            <g style={{ animation: 'hg-blink 2s ease-in-out infinite' }}>
-              <path d="M78 18 L80 14 L82 18 L86 20 L82 22 L80 26 L78 22 L74 20Z" fill="#fbbf24" opacity="0.6" />
+            <g style={{ animation: 'hg-heart-float 2.8s ease-out infinite 1.4s' }}>
+              <path d="M26 16 C25.3 14 23 14 23 16 C23 18 26 20 26 20 C26 20 29 18 29 16 C29 14 26.7 14 26 16Z" fill="#f5a0b0" opacity="0.6" />
+            </g>
+            <g style={{ animation: 'hg-star-twinkle 1.8s ease-in-out infinite' }}>
+              <path d="M83 10 L84.5 7 L86 10 L89 11.5 L86 13 L84.5 16 L83 13 L80 11.5Z" fill="#fbbf24" opacity="0.8" />
+            </g>
+            <g style={{ animation: 'hg-star-twinkle 1.8s ease-in-out infinite 0.9s' }}>
+              <path d="M14 22 L15 20 L16 22 L18 23 L16 24 L15 26 L14 24 L12 23Z" fill="#fbbf24" opacity="0.6" />
+            </g>
+            <g style={{ animation: 'hg-sparkle 2s ease-in-out infinite 0.5s' }}>
+              <path d="M90 25 L91 23.5 L92 25 L93.5 26 L92 27 L91 28.5 L90 27 L88.5 26Z" fill="#c4b5e0" opacity="0.5" />
             </g>
           </g>
         )}
+
+        {/* 身心平穩：輕柔愛心 + 音符 */}
         {isCalm && (
           <g>
-            {/* 輕微紅暈 */}
-            <circle cx="30" cy="58" r="4" fill="#f5a0a0" opacity="0.2" />
-            <circle cx="70" cy="58" r="4" fill="#f5a0a0" opacity="0.2" />
-            {/* 音符飄動 */}
-            <g style={{ animation: 'hg-bounce 2.5s ease-in-out infinite' }}>
-              <text x="76" y="22" fontSize="10" fill="#9b87c4" opacity="0.6">&#9834;</text>
+            <g style={{ animation: 'hg-heart-float 3.5s ease-out infinite' }}>
+              <path d="M74 22 C73 19 70 19 70 22 C70 25 74 27 74 27 C74 27 78 25 78 22 C78 19 75 19 74 22Z" fill="#e8b0c0" opacity="0.5" />
             </g>
-            {/* Zzz 飄出 */}
-            <g style={{ animation: 'hg-bounce 3s ease-in-out infinite', animationDelay: '0.5s' }}>
-              <text x="72" y="14" fontSize="7" fontWeight="bold" fill="#9b87c4" opacity="0.4">z</text>
-              <text x="78" y="10" fontSize="9" fontWeight="bold" fill="#9b87c4" opacity="0.5">Z</text>
+            <g style={{ animation: 'hg-sparkle 3s ease-in-out infinite' }}>
+              <path d="M82 14 L83 12 L84 14 L86 15 L84 16 L83 18 L82 16 L80 15Z" fill="#c4b5e0" opacity="0.4" />
+            </g>
+            <g style={{ animation: 'hg-float 3s ease-in-out infinite' }}>
+              <text x="20" y="18" fontSize="8" fill="#9b87c4" opacity="0.5">&#9834;</text>
             </g>
           </g>
         )}
-        {isAnxious && (
-          <g>
-            {/* 汗滴 */}
-            <g style={{ animation: 'hg-sweat 2s ease-in-out infinite' }}>
-              <path d="M76 28 Q78 22 80 28 Q78 32 76 28Z" fill="#7cb5e0" opacity="0.7" />
-            </g>
-            <g style={{ animation: 'hg-sweat 2s ease-in-out infinite 0.6s' }}>
-              <path d="M80 34 Q81.5 30 83 34 Q81.5 37 80 34Z" fill="#7cb5e0" opacity="0.5" />
-            </g>
-            {/* 驚嘆號 */}
-            <g style={{ animation: 'hg-bounce 0.8s ease-in-out infinite' }}>
-              <text x="44" y="12" fontSize="12" fontWeight="bold" fill="#e8a040" opacity="0.7">!</text>
-            </g>
-          </g>
-        )}
+
+        {/* 壓力過載：汗滴 + 暈圈 + 驚嘆號 */}
         {isOverload && (
           <g>
-            {/* 頭頂旋轉暈圈 */}
-            <g style={{ animation: 'hg-dizzy 1.5s linear infinite', transformOrigin: '50px 10px' }}>
-              <circle cx="38" cy="10" r="2.5" fill="#94a3b8" opacity="0.5" />
-              <circle cx="50" cy="6" r="2" fill="#b0bec5" opacity="0.5" />
-              <circle cx="62" cy="10" r="2.5" fill="#94a3b8" opacity="0.5" />
+            <g style={{ animation: 'hg-sweat-drop 2s ease-in-out infinite' }}>
+              <path d="M78 28 Q80 22 82 28 Q80 33 78 28Z" fill="#7cb5e0" opacity="0.7" />
             </g>
-            {/* 碎裂線 */}
-            <path d="M22 24 L26 20 L24 26" stroke="#94a3b8" strokeWidth="1" fill="none" opacity="0.4" />
-            <path d="M76 22 L80 18 L78 24" stroke="#94a3b8" strokeWidth="1" fill="none" opacity="0.4" />
+            <g style={{ animation: 'hg-sweat-drop 2s ease-in-out infinite 0.8s' }}>
+              <path d="M82 36 Q83.5 32 85 36 Q83.5 39 82 36Z" fill="#7cb5e0" opacity="0.5" />
+            </g>
+            <g style={{ animation: 'hg-spiral 3s linear infinite', transformOrigin: '50px 8px' }}>
+              <circle cx="38" cy="8" r="2" fill="#94a3b8" opacity="0.45" />
+              <circle cx="50" cy="4" r="1.5" fill="#b0bec5" opacity="0.4" />
+              <circle cx="62" cy="8" r="2" fill="#94a3b8" opacity="0.45" />
+            </g>
+            <g style={{ animation: 'hg-sparkle 1.5s ease-in-out infinite' }}>
+              <text x="22" y="16" fontSize="10" fontWeight="bold" fill="#e8a040" opacity="0.7">!</text>
+            </g>
           </g>
         )}
       </svg>

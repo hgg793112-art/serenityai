@@ -23,7 +23,7 @@ jobs:
       - name: Build web
         run: npm run build
         env:
-          VITE_DASHSCOPE_API_KEY: ${{ secrets.VITE_DASHSCOPE_API_KEY }}
+          VITE_DOUBAO_API_KEY: ${{ secrets.VITE_DOUBAO_API_KEY }}
           VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
 
       - name: Sync Android

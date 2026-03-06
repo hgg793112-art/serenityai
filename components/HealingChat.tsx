@@ -1,8 +1,11 @@
 /**
- * 療癒對話：對接千問模型，專注放鬆／正念／情緒安撫
+ * 療癒對話：對接豆包模型，專注放鬆／正念／情緒安撫
+ * 接入 Emotion Engine 即時識別情緒
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { sendHealingMessage } from '../lib/qwenChatService';
+import { detectEmotionFast } from '../lib/emotionEngine';
+import type { EmotionResult } from '../types';
 import { HedgehogIP } from '../constants';
 
 interface HealingChatProps {
@@ -20,6 +23,7 @@ export default function HealingChat({ onClose }: HealingChatProps) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentEmotion, setCurrentEmotion] = useState<EmotionResult | null>(null);
   const listEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,19 +36,26 @@ export default function HealingChat({ onClose }: HealingChatProps) {
     setInput('');
     setError(null);
     const userMsg: SimpleMessage = { id: 'u-' + Date.now(), role: 'user', content: text };
-    setMessages((prev) => [...prev, userMsg]);
+    const assistantId = 'a-' + Date.now();
+    setMessages((prev) => [
+      ...prev,
+      userMsg,
+      { id: assistantId, role: 'assistant', content: '' },
+    ]);
     setLoading(true);
+    const emotion = detectEmotionFast(text);
+    setCurrentEmotion(emotion);
     try {
       const recent = messages.map((m) => ({ role: m.role, content: m.content }));
-      const reply = await sendHealingMessage(text, recent);
-      setMessages((prev) => [
-        ...prev,
-        { id: 'a-' + Date.now(), role: 'assistant', content: reply },
-      ]);
+      await sendHealingMessage(text, recent, (partial) => {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === assistantId ? { ...m, content: partial } : m))
+        );
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : '回覆失敗，請稍後再試';
       setError(msg);
-      setMessages((prev) => prev.slice(0, -1));
+      setMessages((prev) => prev.filter((m) => m.id !== assistantId));
     } finally {
       setLoading(false);
     }
@@ -62,8 +73,15 @@ export default function HealingChat({ onClose }: HealingChatProps) {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         </button>
         <div className="flex items-center gap-2">
-          <HedgehogIP stressLevel={15} size={36} />
-          <span className="font-bold text-slate-800">療癒對話 · 小寧</span>
+          <HedgehogIP stressLevel={currentEmotion?.needsSupport ? 60 + currentEmotion.intensity * 30 : 15} size={36} />
+          <div>
+            <span className="font-bold text-slate-800">療癒對話 · 小寧</span>
+            {currentEmotion && currentEmotion.emotion !== 'neutral' && (
+              <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 font-medium">
+                {currentEmotion.emotion}
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
@@ -73,7 +91,7 @@ export default function HealingChat({ onClose }: HealingChatProps) {
             在這裡可以聊聊心情、放鬆或正念～小寧會溫柔陪伴你。
           </p>
         )}
-        {messages.map((m) => (
+        {messages.filter((m) => m.content || m.role === 'user').map((m) => (
           <div
             key={m.id}
             className={`flex gap-2 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -99,12 +117,12 @@ export default function HealingChat({ onClose }: HealingChatProps) {
             )}
           </div>
         ))}
-        {loading && (
+        {loading && messages[messages.length - 1]?.role === 'assistant' && !messages[messages.length - 1]?.content && (
           <div className="flex gap-2 justify-start">
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
               <HedgehogIP stressLevel={15} size={28} />
             </div>
-            <div className="bg-violet-100/80 text-slate-600 rounded-2xl px-4 py-2.5 text-sm">
+            <div className="bg-violet-100/80 text-slate-600 rounded-2xl px-4 py-2.5 text-sm animate-pulse">
               小寧正在想...
             </div>
           </div>

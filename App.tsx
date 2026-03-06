@@ -140,15 +140,17 @@ const App: React.FC = () => {
           <div className="absolute bottom-[5%] left-[-10%] w-[220px] h-[220px] rounded-full opacity-50" style={{ background: 'radial-gradient(circle, rgba(245, 230, 255, 0.6) 0%, transparent 70%)', filter: 'blur(50px)' }}></div>
         </div>
 
-        <header className="p-6 pb-4 glass-warm sticky top-0 z-30 flex justify-between items-end rounded-b-[2.5rem] border-b border-violet-100/50">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-[0.35em] mb-1 block" style={{ color: '#7c6ba8' }}>你的情緒小夥伴 · 寧靜島</span>
-            <h1 className="text-2xl font-black tracking-tight text-slate-800">小寧陪你</h1>
-          </div>
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ring-2 ring-white/80" style={{ background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' }}>
-            <svg viewBox="0 0 100 100" className="w-7 h-7" xmlns="http://www.w3.org/2000/svg"><ellipse cx="52" cy="52" rx="38" ry="36" fill="currentColor" opacity="0.9"/><path d="M20 52 Q52 90 84 52 Q52 28 20 52" fill="currentColor" opacity="0.7"/></svg>
-          </div>
-        </header>
+        {activeTab === 'dashboard' && (
+          <header className="p-6 pb-4 glass-warm sticky top-0 z-30 flex justify-between items-end rounded-b-[2.5rem] border-b border-violet-100/50">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-[0.35em] mb-1 block" style={{ color: '#7c6ba8' }}>你的情緒小夥伴 · 寧靜島</span>
+              <h1 className="text-2xl font-black tracking-tight text-slate-800">小寧陪你</h1>
+            </div>
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ring-2 ring-white/80" style={{ background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' }}>
+              <svg viewBox="0 0 100 100" className="w-7 h-7" xmlns="http://www.w3.org/2000/svg"><ellipse cx="52" cy="52" rx="38" ry="36" fill="currentColor" opacity="0.9"/><path d="M20 52 Q52 90 84 52 Q52 28 20 52" fill="currentColor" opacity="0.7"/></svg>
+            </div>
+          </header>
+        )}
 
         <main className="flex-1 overflow-y-auto">
           {renderContent()}

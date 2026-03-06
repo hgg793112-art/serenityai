@@ -1,14 +1,14 @@
 /**
- * 與小寧文字對話（帶近期對話記憶，免費方案）
- * 使用 Gemini 免費額度 + Supabase / localStorage 存近期 N 輪
+ * 與小寧文字對話（AI Agent 架構）
+ * 接入 Agent Core：情緒識別 → 記憶 → 任務規劃 → 工具 → LLM → 記憶更新
  */
 import React, { useState, useEffect, useRef } from 'react';
-import type { ChatMessage } from '../types';
+import type { ChatMessage, EmotionResult, AgentToolResult } from '../types';
 import {
   getOrCreateUserId,
   getRecentMessages,
-  sendMessageAndGetReply,
 } from '../lib/chatService';
+import { processMessage } from '../lib/agentCore';
 import { HedgehogIP } from '../constants';
 
 interface ChatWithXiaoningProps {
@@ -16,11 +16,18 @@ interface ChatWithXiaoningProps {
   moodLogs?: { stressLevel?: number }[];
 }
 
+interface ToolCard {
+  id: string;
+  result: AgentToolResult;
+}
+
 export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiaoningProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentEmotion, setCurrentEmotion] = useState<EmotionResult | null>(null);
+  const [toolCards, setToolCards] = useState<ToolCard[]>([]);
   const listEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,7 +42,7 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
 
   useEffect(() => {
     listEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, toolCards]);
 
   const handleSend = async () => {
     const text = input.trim();
@@ -43,25 +50,61 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
     setInput('');
     setError(null);
     const userMsg = { id: 'u-' + Date.now(), role: 'user' as const, content: text, createdAt: Date.now() };
-    setMessages((prev) => [...prev, userMsg]);
+    const assistantId = 'a-' + Date.now();
+    setMessages((prev) => [
+      ...prev,
+      userMsg,
+      { id: assistantId, role: 'assistant', content: '', createdAt: Date.now() },
+    ]);
     setLoading(true);
     try {
-      const reply = await sendMessageAndGetReply(text);
-      setMessages((prev) => {
-        if (prev.length > 0 && prev[prev.length - 1].role === 'assistant') return prev;
-        return [...prev, { id: 'a-' + Date.now(), role: 'assistant', content: reply, createdAt: Date.now() }];
+      const response = await processMessage(text, {
+        onChunk: (partial) => {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === assistantId ? { ...m, content: partial } : m))
+          );
+        },
+        onEmotion: (emotion) => {
+          setCurrentEmotion(emotion);
+        },
+        onToolResult: (result) => {
+          if (result.success && result.action !== 'none') {
+            setToolCards((prev) => [...prev, { id: Date.now().toString(), result }]);
+          }
+        },
       });
+
+      if (response.toolResults.length > 0) {
+        const toolTexts = response.toolResults
+          .filter(r => r.success && r.displayText)
+          .map(r => r.displayText!)
+          .join('\n\n');
+        if (toolTexts) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: 'tool-' + Date.now(),
+              role: 'assistant',
+              content: toolTexts,
+              createdAt: Date.now(),
+            },
+          ]);
+        }
+      }
     } catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
       const msg = raw.length > 80 ? '服務暫時無法使用，請檢查網路或稍後再試。' : raw;
       setError(msg);
-      setMessages((prev) => prev.slice(0, -1));
+      setMessages((prev) => prev.filter((m) => m.id !== assistantId));
     } finally {
       setLoading(false);
     }
   };
 
   const stressLevel = moodLogs[0]?.stressLevel ?? 50;
+  const emotionStress = currentEmotion?.needsSupport
+    ? Math.min(100, stressLevel + currentEmotion.intensity * 30)
+    : stressLevel;
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white animate-in fade-in duration-300">
@@ -75,8 +118,15 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         </button>
         <div className="flex items-center gap-2">
-          <HedgehogIP stressLevel={stressLevel} size={36} />
-          <span className="font-bold text-slate-800">和小寧聊聊</span>
+          <HedgehogIP stressLevel={emotionStress} size={36} />
+          <div>
+            <span className="font-bold text-slate-800">和小寧聊聊</span>
+            {currentEmotion && (
+              <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 font-medium">
+                {currentEmotion.emotion}
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
@@ -86,21 +136,23 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
             說點什麼吧～小寧會記住我們的對話。
           </p>
         )}
-        {messages.map((m) => (
+        {messages.filter((m) => m.content || m.role === 'user').map((m) => (
           <div
             key={m.id}
             className={`flex gap-2 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {m.role === 'assistant' && (
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
-                <HedgehogIP stressLevel={stressLevel} size={28} />
+                <HedgehogIP stressLevel={emotionStress} size={28} />
               </div>
             )}
             <div
-              className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
+              className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
                 m.role === 'user'
                   ? 'bg-violet-600 text-white'
-                  : 'bg-violet-100/80 text-slate-800'
+                  : m.id.startsWith('tool-')
+                    ? 'bg-amber-50 text-slate-800 border border-amber-200/60'
+                    : 'bg-violet-100/80 text-slate-800'
               }`}
             >
               {m.content}
@@ -112,12 +164,51 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
             )}
           </div>
         ))}
-        {loading && (
+
+        {/* 工具卡片 */}
+        {toolCards.map((card) => (
+          <div key={card.id} className="mx-2">
+            {card.result.action === 'play_audio' && card.result.actionPayload && (
+              <button
+                onClick={() => {
+                  const audio = new Audio(card.result.actionPayload!.audioUrl);
+                  audio.play().catch(() => {});
+                }}
+                className="w-full p-4 rounded-2xl bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200/50 text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center text-lg">🎵</div>
+                  <div>
+                    <p className="font-bold text-sm text-slate-800">{card.result.actionPayload.title}</p>
+                    <p className="text-xs text-slate-500">{card.result.actionPayload.duration} · 點擊播放</p>
+                  </div>
+                </div>
+              </button>
+            )}
+            {card.result.action === 'show_card' && card.result.actionPayload?.type === 'breathing' && (
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">🌬️</span>
+                  <span className="font-bold text-sm text-slate-800">{card.result.actionPayload.title}</span>
+                </div>
+                <div className="flex gap-2">
+                  {(card.result.actionPayload.steps as string[]).map((step, i) => (
+                    <span key={i} className="px-3 py-1 rounded-full bg-white/80 text-xs text-slate-600 border border-cyan-100">
+                      {step}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {loading && messages[messages.length - 1]?.role === 'assistant' && !messages[messages.length - 1]?.content && (
           <div className="flex gap-2 justify-start">
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
-              <HedgehogIP stressLevel={stressLevel} size={28} />
+              <HedgehogIP stressLevel={emotionStress} size={28} />
             </div>
-            <div className="bg-violet-100/80 text-slate-600 rounded-2xl px-4 py-2.5 text-sm">
+            <div className="bg-violet-100/80 text-slate-600 rounded-2xl px-4 py-2.5 text-sm animate-pulse">
               小寧正在想...
             </div>
           </div>

@@ -39,12 +39,13 @@ const Dashboard: React.FC<DashboardProps> = ({ moodLogs, healthData, onTabChange
     return topMood;
   }, [moodLogs]);
 
+  const wellnessScore = 100 - avgStress;
+
   const statusInfo = useMemo(() => {
-    if (avgStress <= 30) return { text: "狀態優秀", sub: "51ms", color: "text-emerald-500" };
-    if (avgStress <= 60) return { text: "輕鬆平靜", sub: "42ms", color: "text-cyan-500" };
-    if (avgStress <= 85) return { text: "感到焦慮", sub: "28ms", color: "text-amber-500" };
-    return { text: "壓力過載", sub: "12ms", color: "text-rose-500" };
-  }, [avgStress]);
+    if (wellnessScore > 70) return { text: "狀態優秀", color: "text-emerald-500" };
+    if (wellnessScore > 35) return { text: "身心平穩", color: "text-cyan-500" };
+    return { text: "壓力過載", color: "text-rose-500" };
+  }, [wellnessScore]);
 
   const insights: AIInsight[] = useMemo(() => {
     const list: AIInsight[] = [
@@ -60,7 +61,7 @@ const Dashboard: React.FC<DashboardProps> = ({ moodLogs, healthData, onTabChange
       }
     ];
 
-    if (avgStress > 80) {
+    if (wellnessScore <= 35) {
       list.unshift({
         title: "壓力預警",
         description: "當前狀態提示壓力較高，小夥伴建議先做 5 分鐘森林漫步放鬆一下。",
@@ -72,11 +73,10 @@ const Dashboard: React.FC<DashboardProps> = ({ moodLogs, healthData, onTabChange
   }, [avgStress]);
 
   const islandWeather = useMemo(() => {
-    if (avgStress <= 30) return { label: '晴朗', emoji: '☀️', bg: 'from-amber-100/50 to-violet-100/30' };
-    if (avgStress <= 60) return { label: '多雲', emoji: '⛅', bg: 'from-slate-100/50 to-violet-100/30' };
-    if (avgStress <= 85) return { label: '陰天', emoji: '☁️', bg: 'from-slate-200/50 to-rose-100/30' };
+    if (wellnessScore > 70) return { label: '晴朗', emoji: '☀️', bg: 'from-amber-100/50 to-violet-100/30' };
+    if (wellnessScore > 35) return { label: '多雲', emoji: '⛅', bg: 'from-slate-100/50 to-violet-100/30' };
     return { label: '需要放鬆', emoji: '🌧️', bg: 'from-rose-100/50 to-violet-100/30' };
-  }, [avgStress]);
+  }, [wellnessScore]);
 
   const streak = getConsecutiveDays(moodLogs);
 
@@ -114,17 +114,17 @@ const Dashboard: React.FC<DashboardProps> = ({ moodLogs, healthData, onTabChange
           }}
           className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
         >
-          <HedgehogIP stressLevel={avgStress} size={160} />
+          <HedgehogIP stressLevel={wellnessScore} size={160} />
         </button>
         
         <div className="mt-6 space-y-1">
           <h2 className={`text-4xl font-black tracking-tight ${statusInfo.color}`}>
-            {statusInfo.text} <span className="text-xl opacity-60">· {statusInfo.sub}</span>
+            {statusInfo.text}
           </h2>
         </div>
 
         <div className="w-full max-w-[240px] mt-8">
-          <StressBar value={avgStress} />
+          <StressBar value={wellnessScore} />
           <div className="flex justify-between mt-2 px-1 text-[10px] font-black text-slate-300 uppercase tracking-tighter">
             <span>壓力過載</span>
             <span>身心平衡</span>

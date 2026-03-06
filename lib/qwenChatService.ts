@@ -1,10 +1,13 @@
 /**
- * 療癒對話：對接阿里雲千問
+ * 療癒對話：對接字節豆包（火山方舟）
  * - 有後端代理時走 /api/qwen-chat（Vite dev / Vercel）
- * - Capacitor APK 內直接調用千問 API（無 CORS 限制）
+ * - Capacitor APK 內直接調用豆包 API（無 CORS 限制）
+ * - 使用 SSE 流式輸出，逐字回調
  */
 
-const DASHSCOPE_BASE = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+import { streamChat } from './streamHelper';
+
+const DOUBAO_BASE = 'https://ark.cn-beijing.volces.com/api/v3';
 
 const HEALING_SYSTEM_PROMPT = `你是「小寧」，一位溫和、穩定、包容、有療癒感的成長陪伴者。
 
@@ -46,60 +49,28 @@ function isCapacitor(): boolean {
 }
 
 function getApiKey(): string {
-  return (import.meta.env.VITE_DASHSCOPE_API_KEY as string)?.trim() ?? '';
+  return (import.meta.env.VITE_DOUBAO_API_KEY as string)?.trim() ?? '';
 }
 
-async function callQwenDirect(
-  apiKey: string,
-  messages: QwenMessage[],
-  maxTokens: number,
-  temperature: number
-): Promise<string> {
-  const res = await fetch(`${DASHSCOPE_BASE}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({ model: 'qwen-turbo', messages, max_tokens: maxTokens, temperature }),
+function buildRequestBody(messages: QwenMessage[], maxTokens: number, temperature: number) {
+  return JSON.stringify({
+    model: 'ep-20260306165624-l9cfw',
+    messages,
+    max_tokens: maxTokens,
+    temperature,
+    stream: true,
   });
-  if (!res.ok) {
-    const errText = await res.text().catch(() => res.statusText);
-    throw new Error(res.status === 401 ? '千問 API Key 無效' : `千問 API 錯誤: ${errText}`);
-  }
-  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-  const text = data.choices?.[0]?.message?.content?.trim();
-  if (!text) throw new Error('千問未返回內容');
-  return text;
-}
-
-async function callQwenProxy(
-  messages: QwenMessage[],
-  maxTokens: number,
-  temperature: number
-): Promise<string> {
-  const res = await fetch('/api/qwen-chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, max_tokens: maxTokens, temperature }),
-  });
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(errData.error || '療癒對話呼叫失敗');
-  }
-  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-  const text = data.choices?.[0]?.message?.content?.trim();
-  if (!text) throw new Error('千問未返回內容');
-  return text;
 }
 
 /**
- * 呼叫千問取得療癒情境回覆
+ * 呼叫豆包取得療癒情境回覆（流式）
  * Capacitor 環境直接調用；Web 環境走後端代理
+ * @param onChunk 每收到新內容時的回調，參數為已累積的完整文字
  */
 export async function sendHealingMessage(
   userContent: string,
-  recentMessages: { role: 'user' | 'assistant'; content: string }[]
+  recentMessages: { role: 'user' | 'assistant'; content: string }[],
+  onChunk?: (accumulated: string) => void
 ): Promise<string> {
   const messages: QwenMessage[] = [
     { role: 'system', content: HEALING_SYSTEM_PROMPT },
@@ -108,13 +79,31 @@ export async function sendHealingMessage(
   ];
 
   const apiKey = getApiKey();
+  const body = buildRequestBody(messages, 400, 0.8);
+  const chunk = onChunk ?? (() => {});
 
-  if (isCapacitor() || !apiKey) {
-    if (apiKey) {
-      return callQwenDirect(apiKey, messages, 400, 0.8);
-    }
-    return callQwenProxy(messages, 400, 0.8);
+  if (isCapacitor() && apiKey) {
+    return streamChat(
+      `${DOUBAO_BASE}/chat/completions`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body,
+      },
+      chunk
+    );
   }
 
-  return callQwenProxy(messages, 400, 0.8);
+  return streamChat(
+    '/api/qwen-chat',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    },
+    chunk
+  );
 }

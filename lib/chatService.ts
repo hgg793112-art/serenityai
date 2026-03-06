@@ -171,7 +171,7 @@ async function generateWithGemini(
   return text;
 }
 
-/** 是否為 Gemini 額度/限流錯誤（可改走千問後備） */
+/** 是否為 Gemini 額度/限流錯誤（可改走豆包後備） */
 function isGeminiQuotaError(e: unknown): boolean {
   const msg = e instanceof Error ? e.message : String(e);
   return (
@@ -182,17 +182,20 @@ function isGeminiQuotaError(e: unknown): boolean {
   );
 }
 
-const DASHSCOPE_BASE = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+import { streamChat } from './streamHelper';
+
+const DOUBAO_BASE = 'https://ark.cn-beijing.volces.com/api/v3';
 
 function isCapacitor(): boolean {
   return typeof (window as any)?.Capacitor !== 'undefined';
 }
 
-/** 呼叫千問生成回覆；Capacitor 環境直接調用 API，Web 環境走後端代理 */
-async function generateWithQwen(
+/** 呼叫豆包生成回覆（流式）；Capacitor 環境直接調用 API，Web 環境走後端代理 */
+async function generateWithDoubao(
   recentMessages: ChatMessage[],
   memoryFacts: MemoryFact[],
-  currentUserContent: string
+  currentUserContent: string,
+  onChunk?: (accumulated: string) => void
 ): Promise<string> {
   const systemInstruction = buildSystemInstruction(memoryFacts);
   const history = recentMessages.slice(-10).map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content }));
@@ -202,39 +205,43 @@ async function generateWithQwen(
     { role: 'user', content: currentUserContent },
   ];
 
-  const apiKey = (import.meta.env.VITE_DASHSCOPE_API_KEY as string)?.trim() ?? '';
+  const apiKey = (import.meta.env.VITE_DOUBAO_API_KEY as string)?.trim() ?? '';
   const useDirectCall = isCapacitor() && !!apiKey;
+  const body = JSON.stringify({ model: 'ep-20260306165624-l9cfw', messages, max_tokens: 400, temperature: 0.85, stream: true });
+  const chunk = onChunk ?? (() => {});
 
-  const res = useDirectCall
-    ? await fetch(`${DASHSCOPE_BASE}/chat/completions`, {
+  if (useDirectCall) {
+    return streamChat(
+      `${DOUBAO_BASE}/chat/completions`,
+      {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({ model: 'qwen-turbo', messages, max_tokens: 400, temperature: 0.85 }),
-      })
-    : await fetch('/api/qwen-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, max_tokens: 400, temperature: 0.85 }),
-      });
-
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(errData.error || '千問 API 呼叫失敗');
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        body,
+      },
+      chunk
+    );
   }
-  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-  const text = data.choices?.[0]?.message?.content?.trim();
-  if (!text) throw new Error('千問未返回內容');
-  return text;
+
+  return streamChat(
+    '/api/qwen-chat',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    },
+    chunk
+  );
 }
 
 /**
- * 發送用戶訊息、取得小寧回覆並寫入對話
- * 僅使用千問（VITE_DASHSCOPE_API_KEY）；若未設定則可選用 Gemini 作為後備
+ * 發送用戶訊息、取得小寧回覆並寫入對話（流式）
+ * 僅使用豆包（VITE_DOUBAO_API_KEY）；若未設定則可選用 Gemini 作為後備
+ * @param onChunk 每收到新內容時的回調，參數為已累積的完整文字
  */
-export async function sendMessageAndGetReply(userContent: string): Promise<string> {
+export async function sendMessageAndGetReply(
+  userContent: string,
+  onChunk?: (accumulated: string) => void
+): Promise<string> {
   const hasQwenBackend = true;
   const geminiKey = (import.meta.env.VITE_GEMINI_API_KEY as string)?.trim();
   
@@ -246,20 +253,20 @@ export async function sendMessageAndGetReply(userContent: string): Promise<strin
   ]);
 
   if (hasQwenBackend) {
-    const reply = await generateWithQwen(recentMessages, memoryFacts, userContent);
+    const reply = await generateWithDoubao(recentMessages, memoryFacts, userContent, onChunk);
     await addMessage(userId, 'assistant', reply);
     return reply;
   }
 
   if (!geminiKey) {
-    throw new Error('請在 .env.local 設定 VITE_DASHSCOPE_API_KEY（千問）');
+    throw new Error('請在 .env.local 設定 VITE_DOUBAO_API_KEY（豆包）');
   }
   let reply: string;
   try {
     reply = await generateWithGemini(geminiKey, recentMessages, memoryFacts);
   } catch (e) {
     if (isGeminiQuotaError(e)) {
-      throw new Error('Gemini 額度已用完，請設定 VITE_DASHSCOPE_API_KEY 改用千問。');
+      throw new Error('Gemini 額度已用完，請設定 VITE_DOUBAO_API_KEY 改用豆包。');
     }
     throw e;
   }

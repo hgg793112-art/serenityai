@@ -4,9 +4,9 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import type { Plugin } from 'vite';
 
-function qwenApiPlugin(apiKey: string): Plugin {
+function doubaoApiPlugin(apiKey: string): Plugin {
   return {
-    name: 'qwen-api-proxy',
+    name: 'doubao-api-proxy',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         if (req.url === '/api/qwen-chat' && req.method === 'POST') {
@@ -14,19 +14,36 @@ function qwenApiPlugin(apiKey: string): Plugin {
           req.on('data', chunk => { body += chunk.toString(); });
           req.on('end', async () => {
             try {
-              const { messages, max_tokens = 400, temperature = 0.85 } = JSON.parse(body);
-              const apiRes = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+              const { messages, max_tokens = 400, temperature = 0.85, stream = false } = JSON.parse(body);
+              const apiRes = await fetch('https://ark.cn-beijing.volces.com/api/v3/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   Authorization: `Bearer ${apiKey}`,
                 },
-                body: JSON.stringify({ model: 'qwen-turbo', messages, max_tokens, temperature }),
+                body: JSON.stringify({ model: 'ep-20260306165624-l9cfw', messages, max_tokens, temperature, stream }),
               });
-              const data = await apiRes.json();
-              res.setHeader('Content-Type', 'application/json');
+
               res.statusCode = apiRes.status;
-              res.end(JSON.stringify(data));
+
+              if (stream && apiRes.ok && apiRes.body) {
+                res.setHeader('Content-Type', 'text/event-stream');
+                res.setHeader('Cache-Control', 'no-cache');
+                res.setHeader('Connection', 'keep-alive');
+                const reader = (apiRes.body as any).getReader();
+                const pump = async () => {
+                  while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) { res.end(); break; }
+                    res.write(value);
+                  }
+                };
+                pump().catch(() => res.end());
+              } else {
+                const data = await apiRes.json();
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(data));
+              }
             } catch (err) {
               res.statusCode = 500;
               res.end(JSON.stringify({ error: '代理錯誤' }));
@@ -49,7 +66,7 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [
         react(),
-        ...(env.VITE_DASHSCOPE_API_KEY ? [qwenApiPlugin(env.VITE_DASHSCOPE_API_KEY)] : []),
+        ...(env.VITE_DOUBAO_API_KEY ? [doubaoApiPlugin(env.VITE_DOUBAO_API_KEY)] : []),
         VitePWA({
           registerType: 'autoUpdate',
           includeAssets: ['icon.svg', 'apple-touch-icon.png'],

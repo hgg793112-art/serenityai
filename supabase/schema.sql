@@ -62,3 +62,22 @@ ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE memory_facts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all for chat_messages" ON chat_messages FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all for memory_facts" ON memory_facts FOR ALL USING (true) WITH CHECK (true);
+
+-- ----- AI Agent: 情緒記錄表 -----
+CREATE TABLE IF NOT EXISTS emotion_records (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  emotion TEXT NOT NULL CHECK (emotion IN (
+    'happy','excited','calm','grateful',
+    'sad','anxious','stressed','angry',
+    'lonely','tired','confused','neutral'
+  )),
+  confidence NUMERIC(3,2) NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
+  intensity NUMERIC(3,2) NOT NULL CHECK (intensity >= 0 AND intensity <= 1),
+  source TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_emotion_records_user ON emotion_records (user_id, created_at DESC);
+
+ALTER TABLE emotion_records ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all for emotion_records" ON emotion_records FOR ALL USING (true) WITH CHECK (true);

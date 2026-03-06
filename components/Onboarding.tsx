@@ -49,7 +49,7 @@ export default function Onboarding({ onComplete }: Props) {
       <div className="w-full max-w-md glass-warm rounded-[2.5rem] p-8 border border-violet-100/40 shadow-2xl">
         {step === 1 && (
           <div className="text-center space-y-6 animate-in fade-in zoom-in-95 duration-500">
-            <HedgehogIP stressLevel={20} size={140} />
+            <HedgehogIP stressLevel={80} size={140} />
             <h2 className="text-2xl font-black text-slate-800">你好，我是小寧</h2>
             <p className="text-slate-500 text-sm leading-relaxed">
               我來自寧靜島，是一隻內心柔軟的刺猬，擅長傾聽、會根據你的心情陪在你身邊。
@@ -127,8 +127,14 @@ export default function Onboarding({ onComplete }: Props) {
         {step === 4 && (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
             <h3 className="text-xl font-black text-slate-800 text-center">壓力程度如何？</h3>
+            <div className="flex justify-center">
+              <HedgehogIP stressLevel={100 - stress} size={120} />
+            </div>
             <div className="text-center">
-              <span className="text-5xl font-black" style={{ color: '#7c6ba8' }}>{stress}%</span>
+              <span className="text-4xl font-black" style={{ color: '#7c6ba8' }}>{stress}%</span>
+              <p className="text-xs mt-1 font-bold" style={{ color: stress <= 30 ? '#10b981' : stress <= 65 ? '#06b6d4' : '#f43f5e' }}>
+                {stress <= 30 ? '狀態優秀' : stress <= 65 ? '身心平穩' : '壓力過載'}
+              </p>
             </div>
             <input
               type="range"
