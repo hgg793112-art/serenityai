@@ -1,6 +1,11 @@
 /**
- * 療癒對話：對接阿里雲千問（透過後端 API 代理）
+ * 療癒對話：對接阿里雲千問
+ * - 有後端代理時走 /api/qwen-chat（Vite dev / Vercel）
+ * - Capacitor APK 內直接調用千問 API（無 CORS 限制）
  */
+
+const DASHSCOPE_BASE = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+
 const HEALING_SYSTEM_PROMPT = `你是「小寧」，一位溫和、穩定、包容、有療癒感的成長陪伴者。
 
 核心原則：
@@ -36,8 +41,61 @@ export interface QwenMessage {
   content: string;
 }
 
+function isCapacitor(): boolean {
+  return typeof (window as any)?.Capacitor !== 'undefined';
+}
+
+function getApiKey(): string {
+  return (import.meta.env.VITE_DASHSCOPE_API_KEY as string)?.trim() ?? '';
+}
+
+async function callQwenDirect(
+  apiKey: string,
+  messages: QwenMessage[],
+  maxTokens: number,
+  temperature: number
+): Promise<string> {
+  const res = await fetch(`${DASHSCOPE_BASE}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({ model: 'qwen-turbo', messages, max_tokens: maxTokens, temperature }),
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => res.statusText);
+    throw new Error(res.status === 401 ? '千問 API Key 無效' : `千問 API 錯誤: ${errText}`);
+  }
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const text = data.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error('千問未返回內容');
+  return text;
+}
+
+async function callQwenProxy(
+  messages: QwenMessage[],
+  maxTokens: number,
+  temperature: number
+): Promise<string> {
+  const res = await fetch('/api/qwen-chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, max_tokens: maxTokens, temperature }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(errData.error || '療癒對話呼叫失敗');
+  }
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const text = data.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error('千問未返回內容');
+  return text;
+}
+
 /**
- * 呼叫千問 chat completions（透過後端 API 代理，避免 CORS），取得療癒情境回覆
+ * 呼叫千問取得療癒情境回覆
+ * Capacitor 環境直接調用；Web 環境走後端代理
  */
 export async function sendHealingMessage(
   userContent: string,
@@ -49,19 +107,14 @@ export async function sendHealingMessage(
     { role: 'user', content: userContent },
   ];
 
-  const res = await fetch('/api/qwen-chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, max_tokens: 400, temperature: 0.8 }),
-  });
+  const apiKey = getApiKey();
 
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(errData.error || '療癒對話呼叫失敗');
+  if (isCapacitor() || !apiKey) {
+    if (apiKey) {
+      return callQwenDirect(apiKey, messages, 400, 0.8);
+    }
+    return callQwenProxy(messages, 400, 0.8);
   }
 
-  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-  const text = data.choices?.[0]?.message?.content?.trim();
-  if (!text) throw new Error('千問未返回內容');
-  return text;
+  return callQwenProxy(messages, 400, 0.8);
 }

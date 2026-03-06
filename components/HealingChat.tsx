@@ -21,7 +21,6 @@ export default function HealingChat({ onClose }: HealingChatProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const listEndRef = useRef<HTMLDivElement>(null);
-  const hasKey = !!(import.meta.env.VITE_DASHSCOPE_API_KEY as string)?.trim();
 
   useEffect(() => {
     listEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,10 +29,6 @@ export default function HealingChat({ onClose }: HealingChatProps) {
   const handleSend = async () => {
     const text = input.trim();
     if (!text || loading) return;
-    if (!hasKey) {
-      setError('請在 .env.local 設定 VITE_DASHSCOPE_API_KEY（阿里雲百煉）才能使用療癒對話');
-      return;
-    }
     setInput('');
     setError(null);
     const userMsg: SimpleMessage = { id: 'u-' + Date.now(), role: 'user', content: text };

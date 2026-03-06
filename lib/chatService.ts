@@ -182,7 +182,13 @@ function isGeminiQuotaError(e: unknown): boolean {
   );
 }
 
-/** 呼叫千問生成回覆（透過後端 API 代理，避免 CORS）；最後一條必須為當前用戶輸入，避免重複上一則回覆 */
+const DASHSCOPE_BASE = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+
+function isCapacitor(): boolean {
+  return typeof (window as any)?.Capacitor !== 'undefined';
+}
+
+/** 呼叫千問生成回覆；Capacitor 環境直接調用 API，Web 環境走後端代理 */
 async function generateWithQwen(
   recentMessages: ChatMessage[],
   memoryFacts: MemoryFact[],
@@ -195,11 +201,25 @@ async function generateWithQwen(
     ...history,
     { role: 'user', content: currentUserContent },
   ];
-  const res = await fetch('/api/qwen-chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, max_tokens: 400, temperature: 0.85 }),
-  });
+
+  const apiKey = (import.meta.env.VITE_DASHSCOPE_API_KEY as string)?.trim() ?? '';
+  const useDirectCall = isCapacitor() && !!apiKey;
+
+  const res = useDirectCall
+    ? await fetch(`${DASHSCOPE_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ model: 'qwen-turbo', messages, max_tokens: 400, temperature: 0.85 }),
+      })
+    : await fetch('/api/qwen-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages, max_tokens: 400, temperature: 0.85 }),
+      });
+
   if (!res.ok) {
     const errData = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(errData.error || '千問 API 呼叫失敗');
