@@ -4,4 +4,7 @@
     <color name="colorPrimaryDark">#E8E0F5</color>
     <color name="colorAccent">#7c6ba8</color>
     <color name="ic_launcher_background">#E8E0F5</color>
+    <!-- 啟動頁與狀態列一致（暖米色），避免頂部黑邊 -->
+    <color name="splash_status">#E8DCC4</color>
+    <color name="splash_nav">#E0D4BC</color>
 </resources>

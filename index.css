@@ -8,6 +8,13 @@ html, body, #root {
   width: 100%;
   min-height: 100%;
 }
+/* 全螢幕適配：安全區域，與啟動頁無黑邊一致 */
+#root {
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
 
 /* 價格特工：技能按鈕呼吸燈與點擊波紋 */
 .skill-button-glow {

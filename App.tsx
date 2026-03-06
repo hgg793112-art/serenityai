@@ -131,7 +131,10 @@ const App: React.FC = () => {
     <>
       {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
 
-      <div className="min-h-screen flex flex-col pb-28 max-w-lg mx-auto shadow-xl relative overflow-hidden font-inter selection:bg-violet-100" style={{ background: 'linear-gradient(180deg, #faf8ff 0%, #f0ebf8 50%, #ebe4f5 100%)' }}>
+      <div
+        className="min-h-screen flex flex-col pb-28 max-w-lg mx-auto shadow-xl relative overflow-hidden font-inter selection:bg-violet-100"
+        style={{ background: 'linear-gradient(180deg, #faf8ff 0%, #f0ebf8 50%, #ebe4f5 100%)' }}
+      >
         <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10">
           <div className="absolute top-[-15%] right-[-5%] w-[280px] h-[280px] rounded-full opacity-60" style={{ background: 'radial-gradient(circle, rgba(216, 204, 235, 0.7) 0%, transparent 70%)', filter: 'blur(60px)' }}></div>
           <div className="absolute bottom-[5%] left-[-10%] w-[220px] h-[220px] rounded-full opacity-50" style={{ background: 'radial-gradient(circle, rgba(245, 230, 255, 0.6) 0%, transparent 70%)', filter: 'blur(50px)' }}></div>

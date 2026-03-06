@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 晨光暈圈：右上角柔光，與網頁 radial-gradient 一致 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="radial"
+        android:gradientRadius="800"
+        android:centerX="0.78"
+        android:centerY="0.22"
+        android:startColor="#55FFFDE7"
+        android:endColor="#00FFFFFF" />
+</shape>

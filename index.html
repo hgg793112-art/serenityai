@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>小寧陪你 - 寧靜島 · 你的情緒小夥伴</title>
 
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#E8E0F5" />
-    <meta name="description" content="小寧陪你：來自寧靜島的刺猬小夥伴，陪你記錄心情、照顧內心。小寧懂你，陪你慢慢好起來。" />
+    <!-- PWA Meta Tags：與啟動頁頂底同色 -->
+    <meta name="theme-color" content="#E8DCC4" />
+    <meta name="description" content="小寧陪你：來自寧靜島的刺猬小夥伴，小寧懂你，陪你慢慢好起來。" />
 
-    <!-- iOS PWA Support -->
+    <!-- iOS PWA Support：透明狀態列，漸層全螢幕無黑邊 -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="小寧陪你" />
@@ -22,11 +22,15 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;400&display=swap" rel="stylesheet">
     <style>
+      html, body {
+        background: #E8DCC4;
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
       body {
         font-family: 'Inter', sans-serif;
-        background: linear-gradient(165deg, #faf8ff 0%, #f0ebf8 35%, #e8e0f5 70%, #f5f0fc 100%);
-        min-height: 100vh;
       }
       .glass {
         background: rgba(255, 255, 255, 0.72);
@@ -53,7 +57,7 @@
   <link rel="stylesheet" href="/index.css">
 </head>
   <body class="flex justify-center items-center min-h-screen">
-    <div id="root" class="w-full h-full max-w-lg"></div>
+    <div id="root" class="w-full min-h-full max-w-lg" style="min-height: 100vh; min-height: 100dvh;"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
 </html>

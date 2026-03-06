@@ -52,7 +52,7 @@ export default function Onboarding({ onComplete }: Props) {
             <HedgehogIP stressLevel={20} size={140} />
             <h2 className="text-2xl font-black text-slate-800">你好，我是小寧</h2>
             <p className="text-slate-500 text-sm leading-relaxed">
-              我來自寧靜島，是一隻內心柔軟的刺猬，擅長傾聽、會根據你的心情陪在你身邊。陪你記錄心情、照顧內心。
+              我來自寧靜島，是一隻內心柔軟的刺猬，擅長傾聽、會根據你的心情陪在你身邊。
             </p>
             <p className="text-xs text-slate-400 italic">小寧懂你，陪你慢慢好起來。</p>
             <button

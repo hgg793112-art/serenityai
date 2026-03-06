@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>啟動頁 - 小寧陪你</title>
+  <meta name="theme-color" content="#E8DCC4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;300;400&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; min-height: 100dvh; overflow: hidden; }
+    html, body {
+      font-family: 'Noto Serif TC', serif;
+      position: relative;
+      background: #E8DCC4;
+      padding: 0;
+      margin: 0;
+    }
+    body {
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    .splash-wrap {
+      position: absolute;
+      inset: 0;
+      background: #E8DCC4;
+      animation: splash-fade-in 0.8s ease-out forwards;
+    }
+    .splash-wrap.exit {
+      animation: splash-exit 0.6s ease-out forwards;
+    }
+    @keyframes splash-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes splash-exit {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    .splash-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+    }
+
+    .splash-title {
+      position: absolute;
+      left: 50%;
+      top: 14%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 2;
+      color: #4A3B32;
+      font-weight: 300;
+      font-size: clamp(1.4rem, 5.5vw, 2rem);
+      letter-spacing: 0.35em;
+    }
+    .splash-sub {
+      position: absolute;
+      left: 50%;
+      bottom: 16%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 2;
+      color: #4A3B32;
+      font-weight: 300;
+      font-size: clamp(0.7rem, 2.8vw, 0.85rem);
+      letter-spacing: 0.2em;
+      opacity: 0.95;
+    }
+  </style>
+</head>
+<body>
+  <div class="splash-wrap" id="wrap">
+    <img src="/ip/splash-main.png" alt="" class="splash-img" />
+    <div class="splash-title">寧靜島</div>
+    <div class="splash-sub">你的情緒小夥伴</div>
+  </div>
+  <script>
+    setTimeout(function() {
+      document.getElementById('wrap').classList.add('exit');
+    }, 2000);
+  </script>
+</body>
+</html>
