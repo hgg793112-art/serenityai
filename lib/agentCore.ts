@@ -1,27 +1,29 @@
 /**
- * AI Agent Core — 核心調度
+ * AI Agent Core — 核心调度
  *
  * 完整交互流程：
- * 用戶發送消息
- *   → Emotion Engine 識別情緒
- *   → Memory System 讀取用戶歷史
- *   → Task Planner 決定回覆策略
+ * 用户发送消息
+ *   → Emotion Engine 识别情绪
+ *   → Memory System 读取用户历史
+ *   → Task Planner 决定回复策略
  *   → Prompt Engine 生成人格 Prompt
  *   → LLM 生成回答（流式）
- *   → 更新 Memory（情緒記錄 + 長期記憶抽取）
+ *   → 更新 Memory（情绪记录 + 长期记忆抽取）
  *   → 返回 APP
  */
 
 import type {
-  ChatMessage, MemoryFact, EmotionResult,
+  ChatMessage, MemoryFact, EmotionResult, EmotionType, Mood,
   AgentStep, AgentToolResult, AgentResponse,
 } from '../types';
+import { Mood as MoodEnum } from '../types';
 import { detectEmotionFast } from './emotionEngine';
 import { addEmotionRecord, getEmotionSummary, extractAndSaveMemory } from './memorySystem';
 import { createPlan } from './taskPlanner';
 import { executeTool } from './toolSystem';
 import { buildAgentPrompt } from './promptEngine';
 import { streamChat } from './streamHelper';
+import { supabase, isSupabaseEnabled } from './supabase';
 import {
   getOrCreateUserId,
   getRecentMessages,
@@ -41,7 +43,7 @@ function getApiKey(): string {
 }
 
 /**
- * 快速 LLM 調用（非流式，用於情緒分析、記憶抽取等內部任務）
+ * 快速 LLM 调用（非流式，用于情绪分析、记忆抽取等内部任务）
  */
 async function callLLMQuick(prompt: string): Promise<string> {
   const apiKey = getApiKey();
@@ -62,13 +64,13 @@ async function callLLMQuick(prompt: string): Promise<string> {
   if (isCapacitor() && apiKey) headers.Authorization = `Bearer ${apiKey}`;
 
   const res = await fetch(url, { method: 'POST', headers, body });
-  if (!res.ok) throw new Error(`LLM 調用失敗: ${res.status}`);
+  if (!res.ok) throw new Error(`LLM 调用失败: ${res.status}`);
   const data = await res.json();
   return data.choices?.[0]?.message?.content?.trim() ?? '';
 }
 
 /**
- * 流式 LLM 調用（用於最終回覆）
+ * 流式 LLM 调用（用于最终回复）
  */
 function callLLMStream(
   systemPrompt: string,
@@ -107,6 +109,48 @@ function callLLMStream(
   );
 }
 
+/* ─── 情绪 → 压力值 / Mood 映射 ─── */
+
+const EMOTION_TO_STRESS: Record<EmotionType, number> = {
+  happy: 15, excited: 20, calm: 10, grateful: 12,
+  neutral: 30, confused: 50, tired: 55,
+  lonely: 60, sad: 70, anxious: 75, stressed: 85, angry: 80,
+};
+
+const EMOTION_TO_MOOD: Record<EmotionType, Mood> = {
+  happy: MoodEnum.HAPPY, excited: MoodEnum.EXCITED, calm: MoodEnum.CALM,
+  grateful: MoodEnum.HAPPY, neutral: MoodEnum.CALM,
+  confused: MoodEnum.ANXIOUS, tired: MoodEnum.TIRED,
+  lonely: MoodEnum.SAD, sad: MoodEnum.SAD,
+  anxious: MoodEnum.ANXIOUS, stressed: MoodEnum.STRESSED, angry: MoodEnum.STRESSED,
+};
+
+async function autoWriteMoodLog(emotion: EmotionResult): Promise<void> {
+  const stress = Math.round(
+    (EMOTION_TO_STRESS[emotion.emotion] ?? 40) * (0.6 + emotion.intensity * 0.4)
+  );
+  const mood = EMOTION_TO_MOOD[emotion.emotion] ?? MoodEnum.CALM;
+  const id = crypto.randomUUID?.() ?? Math.random().toString(36).slice(2, 12);
+  const timestamp = Date.now();
+
+  const entry = { id, timestamp, mood, stressLevel: stress, note: 'AI 自动记录' };
+
+  if (isSupabaseEnabled() && supabase) {
+    try {
+      await supabase.from('mood_logs').insert({
+        id, timestamp, mood, note: entry.note, stress_level: stress,
+      });
+    } catch { /* ignore */ }
+  }
+
+  try {
+    const raw = localStorage.getItem('mood_logs');
+    const arr = raw ? JSON.parse(raw) : [];
+    arr.unshift(entry);
+    localStorage.setItem('mood_logs', JSON.stringify(arr.slice(0, 500)));
+  } catch { /* ignore */ }
+}
+
 /* ─── Agent 主流程 ─── */
 
 export interface AgentCallbacks {
@@ -117,9 +161,9 @@ export interface AgentCallbacks {
 }
 
 /**
- * Agent 核心：處理一輪用戶訊息
+ * Agent 核心：处理一轮用户讯息
  *
- * 這是整個 AI Agent 的主入口。
+ * 这是整个 AI Agent 的主入口。
  */
 export async function processMessage(
   userContent: string,
@@ -131,23 +175,23 @@ export async function processMessage(
 
   const userId = getOrCreateUserId();
 
-  // Step 1: Emotion Engine — 識別情緒
+  // Step 1: Emotion Engine — 识别情绪
   const emotion = detectEmotionFast(userContent);
-  steps.push({ type: 'emotion_detect', description: `情緒：${emotion.emotion}（${(emotion.confidence * 100).toFixed(0)}%）`, result: emotion });
+  steps.push({ type: 'emotion_detect', description: `情绪：${emotion.emotion}（${(emotion.confidence * 100).toFixed(0)}%）`, result: emotion });
   onStep?.(steps[steps.length - 1]);
   onEmotion?.(emotion);
 
-  // Step 2: Memory System — 讀取歷史
+  // Step 2: Memory System — 读取历史
   await addMessage(userId, 'user', userContent);
   const [recentMessages, memoryFacts, emotionSummary] = await Promise.all([
     getRecentMessages(userId, 12),
     getMemoryFacts(userId),
     getEmotionSummary(userId),
   ]);
-  steps.push({ type: 'memory_read', description: `讀取 ${recentMessages.length} 條對話、${memoryFacts.length} 條記憶` });
+  steps.push({ type: 'memory_read', description: `读取 ${recentMessages.length} 条对话、${memoryFacts.length} 条记忆` });
   onStep?.(steps[steps.length - 1]);
 
-  // Step 3: Task Planner — 規劃回覆策略
+  // Step 3: Task Planner — 规划回复策略
   const plan = createPlan({
     userMessage: userContent,
     emotion,
@@ -155,10 +199,10 @@ export async function processMessage(
     hasLongMemory: memoryFacts.length > 0,
     recentTopics: [],
   });
-  steps.push({ type: 'plan', description: `意圖：${plan.intent}，策略：${plan.replyStrategy.slice(0, 30)}...` });
+  steps.push({ type: 'plan', description: `意图：${plan.intent}，策略：${plan.replyStrategy.slice(0, 30)}...` });
   onStep?.(steps[steps.length - 1]);
 
-  // Step 4: Tool System — 調用工具（如果需要）
+  // Step 4: Tool System — 调用工具（如果需要）
   if (plan.shouldCallTool && plan.suggestedToolId) {
     const params = {
       ...plan.suggestedToolParams,
@@ -172,7 +216,7 @@ export async function processMessage(
     onToolResult?.(toolResult);
   }
 
-  // Step 5: Prompt Engine — 組裝 system prompt
+  // Step 5: Prompt Engine — 组装 system prompt
   const systemPrompt = buildAgentPrompt({
     emotion,
     memoryFacts,
@@ -181,7 +225,7 @@ export async function processMessage(
     toolResults,
   });
 
-  // Step 6: LLM — 流式生成回覆
+  // Step 6: LLM — 流式生成回复
   const history = recentMessages.slice(-10).map(m => ({
     role: m.role as string,
     content: m.content,
@@ -190,18 +234,21 @@ export async function processMessage(
   const chunk = onChunk ?? (() => {});
   const reply = await callLLMStream(systemPrompt, history, chunk);
 
-  steps.push({ type: 'llm_generate', description: '生成回覆完成' });
+  steps.push({ type: 'llm_generate', description: '生成回复完成' });
   onStep?.(steps[steps.length - 1]);
 
   // Step 7: 更新 Memory
   await addMessage(userId, 'assistant', reply);
   await addEmotionRecord(userId, emotion.emotion, emotion.confidence, emotion.intensity, userContent.slice(0, 50));
 
-  // 異步抽取長期記憶（不阻塞回覆）
+  // 自动写入 moodLog（基于侦测情绪推算压力值），不阻塞回复
+  autoWriteMoodLog(emotion).catch(() => {});
+
+  // 异步抽取长期记忆（不阻塞回复）
   extractAndSaveMemory(userId, userContent, memoryFacts, callLLMQuick, addMemoryFact)
     .then(newFacts => {
       if (newFacts.length > 0) {
-        steps.push({ type: 'memory_write', description: `新增記憶：${newFacts.join('、')}` });
+        steps.push({ type: 'memory_write', description: `新增记忆：${newFacts.join('、')}` });
       }
     })
     .catch(() => {});

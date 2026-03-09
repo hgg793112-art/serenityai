@@ -10,7 +10,7 @@ export async function streamChat(
   const res = await fetch(url, init);
   if (!res.ok) {
     const errText = await res.text().catch(() => res.statusText);
-    throw new Error(`API 錯誤 (${res.status}): ${errText}`);
+    throw new Error(`API 错误 (${res.status}): ${errText}`);
   }
 
   const reader = res.body!.getReader();

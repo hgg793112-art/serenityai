@@ -1,11 +1,11 @@
 /**
- * Task Planner — 任務規劃器
+ * Task Planner — 任务规划器
  *
  * 完整流程：
- * 1. 識別用戶意圖（emotional_support / goal_planning / relaxation / ...）
- * 2. 根據意圖 + 情緒 + 記憶，規劃回覆策略
- * 3. 決定是否調用工具
- * 4. 生成最終回覆的 system prompt 指令
+ * 1. 识别用户意图（emotional_support / goal_planning / relaxation / ...）
+ * 2. 根据意图 + 情绪 + 记忆，规划回复策略
+ * 3. 决定是否调用工具
+ * 4. 生成最终回复的 system prompt 指令
  */
 
 import type { UserIntent, EmotionResult, AgentStep, EmotionMemory } from '../types';
@@ -30,16 +30,16 @@ interface Plan {
 }
 
 const INTENT_KEYWORDS: Record<UserIntent, string[]> = {
-  emotional_support: ['難過', '傷心', '哭', '焦慮', '壓力', '累', '煩', '崩潰', '受不了', '孤獨', '害怕', '不開心', '低落', '沮喪'],
-  goal_planning:     ['目標', '計劃', '想做', '怎麼做', '拆解', '規劃', '安排', '打算', '想要', '決定'],
-  relaxation:        ['放鬆', '冥想', '呼吸', '休息', '睡不著', '失眠', '靜一靜', '安靜'],
-  casual_chat:       ['聊聊', '你好', '嗨', '在嗎', '無聊', '今天', '最近'],
-  self_reflection:   ['為什麼', '我是不是', '我覺得', '反思', '想想', '回顧', '意義'],
-  knowledge_seeking: ['什麼是', '怎麼辦', '方法', '建議', '知識', '科學', '研究'],
+  emotional_support: ['难过', '伤心', '哭', '焦虑', '压力', '累', '烦', '崩溃', '受不了', '孤独', '害怕', '不开心', '低落', '沮丧'],
+  goal_planning:     ['目标', '计划', '想做', '怎么做', '拆解', '规划', '安排', '打算', '想要', '决定'],
+  relaxation:        ['放松', '冥想', '呼吸', '休息', '睡不著', '失眠', '静一静', '安静'],
+  casual_chat:       ['聊聊', '你好', '嗨', '在吗', '无聊', '今天', '最近'],
+  self_reflection:   ['为什么', '我是不是', '我觉得', '反思', '想想', '回顾', '意义'],
+  knowledge_seeking: ['什么是', '怎么办', '方法', '建议', '知识', '科学', '研究'],
 };
 
 /**
- * 快速意圖識別（規則）
+ * 快速意图识别（规则）
  */
 export function detectIntent(text: string, emotion: EmotionResult): UserIntent {
   const lower = text.toLowerCase();
@@ -66,7 +66,7 @@ export function detectIntent(text: string, emotion: EmotionResult): UserIntent {
 }
 
 /**
- * LLM 深度意圖識別 + 工具選擇
+ * LLM 深度意图识别 + 工具选择
  */
 export async function detectIntentDeep(
   text: string,
@@ -75,24 +75,24 @@ export async function detectIntentDeep(
 ): Promise<{ intent: UserIntent; toolId?: string }> {
   const toolsDesc = buildToolsPrompt();
 
-  const prompt = `你是意圖分析助手。分析用戶訊息，判斷意圖並決定是否需要調用工具。
+  const prompt = `你是意图分析助手。分析用户讯息，判断意图并决定是否需要调用工具。
 
-用戶訊息：「${text}」
-檢測到的情緒：${emotion.emotion}（強度 ${emotion.intensity}）
+用户讯息：「${text}」
+检测到的情绪：${emotion.emotion}（强度 ${emotion.intensity}）
 
 可用工具：
 ${toolsDesc}
 
-意圖類型：emotional_support, goal_planning, relaxation, casual_chat, self_reflection, knowledge_seeking
+意图类型：emotional_support, goal_planning, relaxation, casual_chat, self_reflection, knowledge_seeking
 
-返回 JSON（嚴格格式）：
+返回 JSON（严格格式）：
 {"intent":"<intent>","toolId":"<tool_id 或 null>"}
 
-規則：
-- 用戶焦慮/壓力大 + 強度 > 0.6 → 可推薦 breathing_exercise 或 meditation_recommend
-- 用戶問情緒趨勢 → emotion_trend
-- 用戶想了解心理知識 → psych_knowledge
-- 大多數情況不需要工具，toolId 設為 null`;
+规则：
+- 用户焦虑/压力大 + 强度 > 0.6 → 可推荐 breathing_exercise 或 meditation_recommend
+- 用户问情绪趋势 → emotion_trend
+- 用户想了解心理知识 → psych_knowledge
+- 大多数情况不需要工具，toolId 设为 null`;
 
   try {
     const raw = await callLLM(prompt);
@@ -110,15 +110,15 @@ ${toolsDesc}
 }
 
 /**
- * 生成執行計劃
+ * 生成执行计划
  */
 export function createPlan(ctx: PlanContext): Plan {
   const { userMessage, emotion, emotionSummary } = ctx;
   const intent = detectIntent(userMessage, emotion);
   const steps: AgentStep[] = [];
 
-  steps.push({ type: 'emotion_detect', description: `識別情緒：${emotion.emotion}（${(emotion.confidence * 100).toFixed(0)}%）` });
-  steps.push({ type: 'memory_read', description: '讀取用戶歷史記憶' });
+  steps.push({ type: 'emotion_detect', description: `识别情绪：${emotion.emotion}（${(emotion.confidence * 100).toFixed(0)}%）` });
+  steps.push({ type: 'memory_read', description: '读取用户历史记忆' });
 
   let shouldCallTool = false;
   let suggestedToolId: string | undefined;
@@ -130,25 +130,25 @@ export function createPlan(ctx: PlanContext): Plan {
       if (emotion.intensity > 0.7 && ['anxious', 'stressed'].includes(emotion.emotion)) {
         shouldCallTool = true;
         suggestedToolId = 'breathing_exercise';
-        steps.push({ type: 'tool_call', description: '推薦呼吸練習' });
+        steps.push({ type: 'tool_call', description: '推荐呼吸练习' });
       }
-      replyStrategy = '以共情、陪伴為主。先接住情緒，再輕輕回應。不說教、不催促。';
+      replyStrategy = '以共情、陪伴为主。先接住情绪，再轻轻回应。不说教、不催促。';
       break;
 
     case 'goal_planning':
-      replyStrategy = '先簡短接住情緒（若有），再溫和協助拆解目標，給出 3-5 個小步驟。';
+      replyStrategy = '先简短接住情绪（若有），再温和协助拆解目标，给出 3-5 个小步骤。';
       break;
 
     case 'relaxation':
       shouldCallTool = true;
       suggestedToolId = 'meditation_recommend';
       suggestedToolParams = { emotion: emotion.emotion };
-      steps.push({ type: 'tool_call', description: '推薦冥想音頻' });
-      replyStrategy = '引導放鬆，推薦合適的練習。';
+      steps.push({ type: 'tool_call', description: '推荐冥想音频' });
+      replyStrategy = '引导放松，推荐合适的练习。';
       break;
 
     case 'self_reflection':
-      replyStrategy = '溫和引導自我覺察，不急於給答案，陪伴用戶慢慢探索。';
+      replyStrategy = '温和引导自我觉察，不急于给答案，陪伴用户慢慢探索。';
       break;
 
     case 'knowledge_seeking': {
@@ -156,21 +156,21 @@ export function createPlan(ctx: PlanContext): Plan {
       const topic = emotion.needsSupport ? emotion.emotion : 'general';
       suggestedToolId = 'psych_knowledge';
       suggestedToolParams = { topic };
-      steps.push({ type: 'tool_call', description: '提供心理知識' });
-      replyStrategy = '分享相關知識，但保持溫和語氣，不要像教科書。';
+      steps.push({ type: 'tool_call', description: '提供心理知识' });
+      replyStrategy = '分享相关知识，但保持温和语气，不要像教科书。';
       break;
     }
 
     default:
-      replyStrategy = '正常對話，保持溫和、自然。';
+      replyStrategy = '正常对话，保持温和、自然。';
   }
 
   if (emotionSummary.some(e => e.trend === 'worsening' && e.count > 5)) {
-    replyStrategy += ' 注意：用戶近期某些情緒有加重趨勢，需要更多關注和支持。';
+    replyStrategy += ' 注意：用户近期某些情绪有加重趋势，需要更多关注和支持。';
   }
 
-  steps.push({ type: 'llm_generate', description: '生成回覆' });
-  steps.push({ type: 'memory_write', description: '更新記憶' });
+  steps.push({ type: 'llm_generate', description: '生成回复' });
+  steps.push({ type: 'memory_write', description: '更新记忆' });
 
   return {
     intent,

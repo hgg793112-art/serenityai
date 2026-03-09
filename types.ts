@@ -40,7 +40,7 @@ export interface RelaxationExercise {
   audioUrl?: string;
 }
 
-/** 對話記憶：單條訊息 */
+/** 对话记忆：单条讯息 */
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -48,22 +48,22 @@ export interface ChatMessage {
   createdAt: number;
 }
 
-/** 長期記憶：關於用戶的一句話事實 */
+/** 长期记忆：关于用户的一句话事实 */
 export interface MemoryFact {
   id: string;
   factText: string;
   createdAt: number;
 }
 
-/* ─── AI Agent 架構擴展類型 ─── */
+/* ─── AI Agent 架构扩展类型 ─── */
 
-/** 情緒類型（細粒度） */
+/** 情绪类型（细粒度） */
 export type EmotionType =
   | 'happy' | 'excited' | 'calm' | 'grateful'
   | 'sad' | 'anxious' | 'stressed' | 'angry'
   | 'lonely' | 'tired' | 'confused' | 'neutral';
 
-/** 情緒識別結果 */
+/** 情绪识别结果 */
 export interface EmotionResult {
   emotion: EmotionType;
   confidence: number;
@@ -71,7 +71,7 @@ export interface EmotionResult {
   needsSupport: boolean;
 }
 
-/** 情緒記錄（持久化） */
+/** 情绪记录（持久化） */
 export interface EmotionRecord {
   id: string;
   userId: string;
@@ -82,10 +82,10 @@ export interface EmotionRecord {
   createdAt: number;
 }
 
-/** 記憶類型 */
+/** 记忆类型 */
 export type MemoryType = 'short' | 'long' | 'emotion';
 
-/** 情緒記憶 */
+/** 情绪记忆 */
 export interface EmotionMemory {
   emotion: EmotionType;
   count: number;
@@ -93,7 +93,7 @@ export interface EmotionMemory {
   trend: 'improving' | 'stable' | 'worsening';
 }
 
-/** 用戶畫像 */
+/** 用户画像 */
 export interface UserProfile {
   userId: string;
   emotionHistory: EmotionMemory[];
@@ -102,7 +102,7 @@ export interface UserProfile {
   lastActive: number;
 }
 
-/** Agent 意圖識別 */
+/** Agent 意图识别 */
 export type UserIntent =
   | 'emotional_support'
   | 'goal_planning'
@@ -111,7 +111,7 @@ export type UserIntent =
   | 'self_reflection'
   | 'knowledge_seeking';
 
-/** Agent 工具定義 */
+/** Agent 工具定义 */
 export interface AgentTool {
   id: string;
   name: string;
@@ -119,7 +119,7 @@ export interface AgentTool {
   execute: (params: Record<string, any>) => Promise<AgentToolResult>;
 }
 
-/** 工具執行結果 */
+/** 工具执行结果 */
 export interface AgentToolResult {
   success: boolean;
   data?: any;
@@ -128,14 +128,14 @@ export interface AgentToolResult {
   actionPayload?: Record<string, any>;
 }
 
-/** Agent 任務步驟 */
+/** Agent 任务步骤 */
 export interface AgentStep {
   type: 'emotion_detect' | 'memory_read' | 'memory_write' | 'tool_call' | 'llm_generate' | 'plan';
   description: string;
   result?: any;
 }
 
-/** Agent 完整回覆 */
+/** Agent 完整回复 */
 export interface AgentResponse {
   reply: string;
   emotion: EmotionResult;

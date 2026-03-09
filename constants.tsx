@@ -3,20 +3,20 @@ import React from 'react';
 import { Mood, RelaxationExercise } from './types';
 
 export const MOOD_CONFIG: Record<Mood, { emoji: string; color: string; label: string }> = {
-  [Mood.EXCITED]: { emoji: '🤩', color: 'bg-yellow-400', label: '興奮' },
-  [Mood.HAPPY]: { emoji: '😊', color: 'bg-green-400', label: '快樂' },
-  [Mood.CALM]: { emoji: '😌', color: 'bg-blue-400', label: '平靜' },
-  [Mood.TIRED]: { emoji: '🥱', color: 'bg-purple-400', label: '疲憊' },
-  [Mood.SAD]: { emoji: '😔', color: 'bg-indigo-400', label: '憂鬱' },
-  [Mood.ANXIOUS]: { emoji: '😟', color: 'bg-orange-400', label: '焦慮' },
-  [Mood.STRESSED]: { emoji: '😫', color: 'bg-red-400', label: '壓力' },
+  [Mood.EXCITED]: { emoji: '🤩', color: 'bg-yellow-400', label: '兴奋' },
+  [Mood.HAPPY]: { emoji: '😊', color: 'bg-green-400', label: '快乐' },
+  [Mood.CALM]: { emoji: '😌', color: 'bg-blue-400', label: '平静' },
+  [Mood.TIRED]: { emoji: '🥱', color: 'bg-purple-400', label: '疲惫' },
+  [Mood.SAD]: { emoji: '😔', color: 'bg-indigo-400', label: '忧郁' },
+  [Mood.ANXIOUS]: { emoji: '😟', color: 'bg-orange-400', label: '焦虑' },
+  [Mood.STRESSED]: { emoji: '😫', color: 'bg-red-400', label: '压力' },
 };
 
 export const EXERCISES: RelaxationExercise[] = [
   { 
     id: '1', 
     title: '深腹式呼吸', 
-    duration: '3 分鐘', 
+    duration: '3 分钟', 
     category: 'Breathing', 
     icon: '🌬️', 
     color: 'bg-cyan-100 text-cyan-700',
@@ -24,8 +24,8 @@ export const EXERCISES: RelaxationExercise[] = [
   },
   { 
     id: '2', 
-    title: '夏日蟲鳴', 
-    duration: '10 分鐘', 
+    title: '夏日虫鸣', 
+    duration: '10 分钟', 
     category: 'Meditation', 
     icon: '🦗', 
     color: 'bg-emerald-100 text-emerald-700',
@@ -33,8 +33,8 @@ export const EXERCISES: RelaxationExercise[] = [
   },
   { 
     id: '3', 
-    title: '海浪療癒', 
-    duration: '15 分鐘', 
+    title: '海浪疗愈', 
+    duration: '15 分钟', 
     category: 'Meditation', 
     icon: '🌊', 
     color: 'bg-blue-100 text-blue-700',
@@ -42,8 +42,8 @@ export const EXERCISES: RelaxationExercise[] = [
   },
   { 
     id: '4', 
-    title: '秋葉沙沙', 
-    duration: '5 分鐘', 
+    title: '秋叶沙沙', 
+    duration: '5 分钟', 
     category: 'Meditation', 
     icon: '🍂', 
     color: 'bg-amber-100 text-amber-700',
@@ -51,8 +51,8 @@ export const EXERCISES: RelaxationExercise[] = [
   },
   { 
     id: '5', 
-    title: '夏日細雨', 
-    duration: '8 分鐘', 
+    title: '夏日细雨', 
+    duration: '8 分钟', 
     category: 'Meditation', 
     icon: '🌧️', 
     color: 'bg-slate-100 text-slate-700',
@@ -60,8 +60,8 @@ export const EXERCISES: RelaxationExercise[] = [
   },
   { 
     id: '6', 
-    title: '冥想頌缽', 
-    duration: '12 分鐘', 
+    title: '冥想颂钵', 
+    duration: '12 分钟', 
     category: 'Meditation', 
     icon: '🥣', 
     color: 'bg-purple-100 text-purple-700',
@@ -102,12 +102,12 @@ export const StressBar = ({ value }: { value: number }) => (
 );
 
 /**
- * 刺蝟小寧 IP：根據壓力狀態分三段切換形象 + 微動效
+ * 刺猬小宁 IP：根据压力状态分三段切换形象 + 微动效
  *
- * stressLevel 語義：身心狀態分數（越高越好）
- *  0 – 35  壓力過載 → hedgehog-stressed.png
- * 36 – 70  身心平穩 → hedgehog-calm.png
- * 71 – 100 狀態優秀 → hedgehog.png
+ * stressLevel 语义：身心状态分数（越高越好）
+ *  0 – 35  压力过载 → hedgehog-stressed.png
+ * 36 – 70  身心平稳 → hedgehog-calm.png
+ * 71 – 100 状态优秀 → hedgehog.png
  */
 export const HedgehogIP = ({ stressLevel = 50, size = 120 }: { stressLevel?: number; size?: number }) => {
   const isOverload  = stressLevel <= 35;
@@ -174,7 +174,7 @@ export const HedgehogIP = ({ stressLevel = 50, size = 120 }: { stressLevel?: num
         }
       `}</style>
 
-      {/* 底光暈 */}
+      {/* 底光晕 */}
       {isCalm && (
         <div
           className="absolute rounded-full"
@@ -198,10 +198,10 @@ export const HedgehogIP = ({ stressLevel = 50, size = 120 }: { stressLevel?: num
         />
       )}
 
-      {/* 主圖 */}
+      {/* 主图 */}
       <img
         src={imgSrc}
-        alt="小寧"
+        alt="小宁"
         style={{
           width: size, height: size,
           animation: isOverload
@@ -215,9 +215,9 @@ export const HedgehogIP = ({ stressLevel = 50, size = 120 }: { stressLevel?: num
         draggable={false}
       />
 
-      {/* SVG 動效疊加 */}
+      {/* SVG 动效叠加 */}
       <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none">
-        {/* 狀態優秀：愛心 + 星星 + 光芒 */}
+        {/* 状态优秀：爱心 + 星星 + 光芒 */}
         {isExcellent && (
           <g>
             <g style={{ animation: 'hg-heart-float 2.8s ease-out infinite' }}>
@@ -238,7 +238,7 @@ export const HedgehogIP = ({ stressLevel = 50, size = 120 }: { stressLevel?: num
           </g>
         )}
 
-        {/* 身心平穩：輕柔愛心 + 音符 */}
+        {/* 身心平稳：轻柔爱心 + 音符 */}
         {isCalm && (
           <g>
             <g style={{ animation: 'hg-heart-float 3.5s ease-out infinite' }}>
@@ -253,7 +253,7 @@ export const HedgehogIP = ({ stressLevel = 50, size = 120 }: { stressLevel?: num
           </g>
         )}
 
-        {/* 壓力過載：汗滴 + 暈圈 + 驚嘆號 */}
+        {/* 压力过载：汗滴 + 晕圈 + 惊叹号 */}
         {isOverload && (
           <g>
             <g style={{ animation: 'hg-sweat-drop 2s ease-in-out infinite' }}>

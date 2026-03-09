@@ -1,4 +1,4 @@
-/* 基礎樣式：與 index.html 的 body 設定一致，避免 404 */
+/* 基础样式：与 index.html 的 body 设定一致，避免 404 */
 * {
   box-sizing: border-box;
 }
@@ -8,7 +8,7 @@ html, body, #root {
   width: 100%;
   min-height: 100%;
 }
-/* 全螢幕適配：安全區域，與啟動頁無黑邊一致 */
+/* 全萤幕适配：安全区域，与启动页无黑边一致 */
 #root {
   padding-top: env(safe-area-inset-top);
   padding-right: env(safe-area-inset-right);
@@ -16,7 +16,7 @@ html, body, #root {
   padding-left: env(safe-area-inset-left);
 }
 
-/* 價格特工：技能按鈕呼吸燈與點擊波紋 */
+/* 价格特工：技能按钮呼吸灯与点击波纹 */
 .skill-button-glow {
   animation: skill-button-glow 2s ease-in-out infinite;
 }
@@ -32,7 +32,7 @@ html, body, #root {
   to { transform: scale(2); opacity: 0; }
 }
 
-/* 價格特工：傷害數字彈出 + 綠色閃爍 */
+/* 价格特工：伤害数字弹出 + 绿色闪烁 */
 .damage-number {
   animation: damage-number 0.7s ease-out forwards;
 }

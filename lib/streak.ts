@@ -5,7 +5,7 @@ function toDateKey(ts: number): string {
 }
 
 /**
- * 從今天起算，連續幾天有心情記錄（至少一天一筆）。
+ * 从今天起算，连续几天有心情记录（至少一天一笔）。
  */
 export function getConsecutiveDays(moodLogs: MoodLogEntry[]): number {
   if (moodLogs.length === 0) return 0;

@@ -5,7 +5,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(
-    'Serenity: 未設定 Supabase 環境變數。請在 .env 或 .env.local 中設定 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY，否則將使用 localStorage。'
+    'Serenity: 未设定 Supabase 环境变数。请在 .env 或 .env.local 中设定 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY，否则将使用 localStorage。'
   );
 }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>音頻測試 - 小寧陪你</title>
+  <title>音频测试 - 小宁陪你</title>
   <style>
     body { font-family: system-ui; padding: 20px; background: #f8f9fa; }
     .audio-item { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -16,22 +16,22 @@
   </style>
 </head>
 <body>
-  <h1>🎵 音頻測試工具</h1>
-  <p>測試所有放鬆練習音頻是否正常播放</p>
+  <h1>🎵 音频测试工具</h1>
+  <p>测试所有放松练习音频是否正常播放</p>
   
   <div id="audio-list"></div>
 
   <script>
     const audioFiles = [
       { name: '深腹式呼吸', file: 'breathing-guide.mp3' },
-      { name: '森林微風', file: 'forest-wind.mp3' },
-      { name: '海浪療癒', file: 'ocean-waves.mp3' },
-      { name: '秋葉沙沙', file: 'autumn-leaves.mp3' },
-      { name: '夏日細雨', file: 'summer-rain.mp3' },
-      { name: '冥想頌缽', file: 'singing-bowl.mp3' },
-      { name: '風聲', file: 'wind.mp3' },
+      { name: '森林微风', file: 'forest-wind.mp3' },
+      { name: '海浪疗愈', file: 'ocean-waves.mp3' },
+      { name: '秋叶沙沙', file: 'autumn-leaves.mp3' },
+      { name: '夏日细雨', file: 'summer-rain.mp3' },
+      { name: '冥想颂钵', file: 'singing-bowl.mp3' },
+      { name: '风声', file: 'wind.mp3' },
       { name: '森林', file: 'forest.mp3' },
-      { name: '雨聲', file: 'rain.mp3' },
+      { name: '雨声', file: 'rain.mp3' },
       { name: '雨林', file: 'rainforest.mp3' },
     ];
 
@@ -45,7 +45,7 @@
         <h3>${item.name} - ${item.file}</h3>
         <button onclick="playAudio('${item.file}', this)">播放</button>
         <button onclick="stopAudio()">停止</button>
-        <span class="status info" id="status-${item.file}">未測試</span>
+        <span class="status info" id="status-${item.file}">未测试</span>
       `;
       container.appendChild(div);
     });
@@ -54,7 +54,7 @@
       stopAudio();
       const statusEl = document.getElementById(`status-${file}`);
       statusEl.className = 'status info';
-      statusEl.textContent = '載入中...';
+      statusEl.textContent = '载入中...';
       
       currentAudio = new Audio(file);
       currentAudio.volume = 0.5;
@@ -66,13 +66,13 @@
       
       currentAudio.addEventListener('error', (e) => {
         statusEl.className = 'status error';
-        statusEl.textContent = '✗ 載入失敗';
+        statusEl.textContent = '✗ 载入失败';
         console.error('Audio error:', file, e);
       });
       
       currentAudio.play().catch(e => {
         statusEl.className = 'status error';
-        statusEl.textContent = '✗ 播放失敗';
+        statusEl.textContent = '✗ 播放失败';
         console.error('Play error:', file, e);
       });
     }

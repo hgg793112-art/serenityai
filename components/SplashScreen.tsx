@@ -5,8 +5,8 @@ const STAY_MS = 1200;
 const EXIT_MS = 600;
 
 /**
- * 啟動頁：刺猬插圖，尺寸自適應。寧靜島在上、你的情緒小夥伴在刺猬下方。
- * 淡入 → 停留 → 淡出（無跳轉），頂底同色，無縫銜接首頁。
+ * 启动页：刺猬插图，尺寸自适应。宁静岛在上、你的情绪小伙伴在刺猬下方。
+ * 淡入 → 停留 → 淡出（无跳转），顶底同色，无缝衔接首页。
  */
 const SplashScreen: React.FC<{ onDone: () => void }> = ({ onDone }) => {
   const [exiting, setExiting] = useState(false);
@@ -44,7 +44,7 @@ const SplashScreen: React.FC<{ onDone: () => void }> = ({ onDone }) => {
         }
       `}</style>
 
-      {/* 插圖：自適應填滿，保持比例 */}
+      {/* 插图：自适应填满，保持比例 */}
       <img
         src="/ip/splash-main.png"
         alt=""
@@ -52,7 +52,7 @@ const SplashScreen: React.FC<{ onDone: () => void }> = ({ onDone }) => {
         aria-hidden
       />
 
-      {/* 寧靜島：上方 */}
+      {/* 宁静岛：上方 */}
       <div
         className="absolute left-1/2 text-center z-10"
         style={{
@@ -65,10 +65,10 @@ const SplashScreen: React.FC<{ onDone: () => void }> = ({ onDone }) => {
           letterSpacing: '0.35em',
         }}
       >
-        寧靜島
+        宁静岛
       </div>
 
-      {/* 你的情緒小夥伴：刺猬下方 */}
+      {/* 你的情绪小伙伴：刺猬下方 */}
       <div
         className="absolute left-1/2 text-center z-10"
         style={{
@@ -82,7 +82,7 @@ const SplashScreen: React.FC<{ onDone: () => void }> = ({ onDone }) => {
           opacity: 0.95,
         }}
       >
-        你的情緒小夥伴
+        你的情绪小伙伴
       </div>
     </div>
   );

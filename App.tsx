@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { MoodLogEntry, HealthMetric, Mood } from './types';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { MoodLogEntry, HealthMetric, EmotionRecord, Mood } from './types';
 import { supabase, isSupabaseEnabled } from './lib/supabase';
 import { initHealth, fetchHeartRateData, generateMockData } from './lib/healthService';
+import { getEmotionRecords } from './lib/memorySystem';
+import { getDailyTaskStatus, getConsecutiveDays as getDailyStreak } from './lib/dailyTaskStorage';
+import { computeWellnessScore, WellnessResult } from './lib/wellnessEngine';
+import { getOrCreateUserId } from './lib/chatService';
 import Dashboard from './components/Dashboard';
 import HealthTrends from './components/HealthTrends';
 import RelaxCenter from './components/RelaxCenter';
 import Navigation from './components/Navigation';
 import Onboarding from './components/Onboarding';
 import HealingChat from './components/HealingChat';
+import DailyCheckin from './components/DailyCheckin';
 
 function rowToMoodLog(row: { id: string; timestamp: number; mood: string; note?: string; stress_level: number }): MoodLogEntry {
   return {
@@ -27,11 +32,19 @@ const App: React.FC = () => {
   });
   const [activeTab, setActiveTab] = useState<'dashboard' | 'relax' | 'health'>('dashboard');
   const [overlayPage, setOverlayPage] = useState<OverlayPage>(null);
+  const [showCheckin, setShowCheckin] = useState(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const done = localStorage.getItem('onboarding_completed');
+    const checked = localStorage.getItem('mood_checkin_' + today);
+    return !!done && !checked;
+  });
   const [moodLogs, setMoodLogs] = useState<MoodLogEntry[]>(() => {
     const saved = localStorage.getItem('mood_logs');
     return saved ? JSON.parse(saved) : [];
   });
   const [healthData, setHealthData] = useState<HealthMetric[]>([]);
+  const [emotionRecords, setEmotionRecords] = useState<EmotionRecord[]>([]);
+
   useEffect(() => {
     (async () => {
       const available = await initHealth();
@@ -49,12 +62,22 @@ const App: React.FC = () => {
             return;
           }
         } catch (e) {
-          console.warn('Health Connect 读取失败，使用 mock 数据:', e);
+          console.warn('Health Connect 读取失败:', e);
         }
       }
       setHealthData(generateMockData());
     })();
   }, []);
+
+  const refreshEmotionRecords = useCallback(async () => {
+    try {
+      const userId = getOrCreateUserId();
+      const records = await getEmotionRecords(userId, 20);
+      setEmotionRecords(records);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { refreshEmotionRecords(); }, [refreshEmotionRecords]);
 
   useEffect(() => {
     if (!supabase) return;
@@ -95,33 +118,60 @@ const App: React.FC = () => {
         stress_level: newEntry.stressLevel,
       });
       if (error) {
-        console.error('Supabase 寫入心情失敗:', error);
+        console.error('Supabase 写入心情失败:', error);
       }
     }
   };
 
+  const wellnessResult = useMemo<WellnessResult>(() => {
+    const { chatDone, relaxDone } = getDailyTaskStatus();
+    const streak = getDailyStreak();
+    return computeWellnessScore({
+      moodLogs,
+      emotionRecords,
+      healthData,
+      dailyChatDone: chatDone,
+      dailyRelaxDone: relaxDone,
+      streak,
+    });
+  }, [moodLogs, emotionRecords, healthData]);
+
+  const dismissCheckin = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    localStorage.setItem('mood_checkin_' + today, '1');
+    setShowCheckin(false);
+  };
+
+  const handleCheckinComplete = (mood: Mood, stress: number) => {
+    addMoodLog(mood, stress, '每日打卡');
+    dismissCheckin();
+  };
+
+  const openCheckin = () => setShowCheckin(true);
+
   const handleOnboardingComplete = (initialMood: Mood, initialStress: number) => {
     localStorage.setItem('onboarding_completed', 'true');
     setShowOnboarding(false);
-    addMoodLog(initialMood, initialStress, '首次記錄');
+    addMoodLog(initialMood, initialStress, '首次记录');
+    dismissCheckin();
   };
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return <Dashboard moodLogs={moodLogs} healthData={healthData} onTabChange={setActiveTab} />;
-      case 'relax': return <RelaxCenter onOpenHealingChat={() => setOverlayPage('healing-chat')} />;
-      case 'health': return <HealthTrends healthData={healthData} />;
-      default: return <Dashboard moodLogs={moodLogs} healthData={healthData} onTabChange={setActiveTab} />;
+      case 'dashboard': return <Dashboard moodLogs={moodLogs} healthData={healthData} onTabChange={setActiveTab} wellnessResult={wellnessResult} onOpenCheckin={openCheckin} />;
+      case 'relax': return <RelaxCenter onOpenHealingChat={() => setOverlayPage('healing-chat')} wellnessScore={wellnessResult.score} />;
+      case 'health': return <HealthTrends healthData={healthData} moodLogs={moodLogs} wellnessResult={wellnessResult} />;
+      default: return <Dashboard moodLogs={moodLogs} healthData={healthData} onTabChange={setActiveTab} wellnessResult={wellnessResult} onOpenCheckin={openCheckin} />;
     }
   };
 
-  // 療癒對話以獨立新頁面顯示，取代整個主畫面
+  // 疗愈对话以独立新页面显示，取代整个主画面
   if (overlayPage === 'healing-chat') {
     return (
       <>
         {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
         <div className="min-h-screen flex flex-col max-w-lg mx-auto font-inter selection:bg-violet-100" style={{ background: 'linear-gradient(180deg, #faf8ff 0%, #f0ebf8 50%, #ebe4f5 100%)' }}>
-          <HealingChat onClose={() => setOverlayPage(null)} />
+          <HealingChat onClose={() => { setOverlayPage(null); refreshEmotionRecords(); }} />
         </div>
       </>
     );
@@ -143,8 +193,8 @@ const App: React.FC = () => {
         {activeTab === 'dashboard' && (
           <header className="p-6 pb-4 glass-warm sticky top-0 z-30 flex justify-between items-end rounded-b-[2.5rem] border-b border-violet-100/50">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-[0.35em] mb-1 block" style={{ color: '#7c6ba8' }}>你的情緒小夥伴 · 寧靜島</span>
-              <h1 className="text-2xl font-black tracking-tight text-slate-800">小寧陪你</h1>
+              <span className="text-[10px] font-black uppercase tracking-[0.35em] mb-1 block" style={{ color: '#7c6ba8' }}>你的情绪小伙伴 · 宁静岛</span>
+              <h1 className="text-2xl font-black tracking-tight text-slate-800">小宁陪你</h1>
             </div>
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ring-2 ring-white/80" style={{ background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' }}>
               <svg viewBox="0 0 100 100" className="w-7 h-7" xmlns="http://www.w3.org/2000/svg"><ellipse cx="52" cy="52" rx="38" ry="36" fill="currentColor" opacity="0.9"/><path d="M20 52 Q52 90 84 52 Q52 28 20 52" fill="currentColor" opacity="0.7"/></svg>
@@ -158,6 +208,10 @@ const App: React.FC = () => {
 
         <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
+
+      {showCheckin && !showOnboarding && (
+        <DailyCheckin onComplete={handleCheckinComplete} onSkip={dismissCheckin} />
+      )}
     </>
   );
 };

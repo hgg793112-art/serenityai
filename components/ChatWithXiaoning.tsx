@@ -1,6 +1,6 @@
 /**
- * 與小寧文字對話（AI Agent 架構）
- * 接入 Agent Core：情緒識別 → 記憶 → 任務規劃 → 工具 → LLM → 記憶更新
+ * 与小宁文字对话（AI Agent 架构）
+ * 接入 Agent Core：情绪识别 → 记忆 → 任务规划 → 工具 → LLM → 记忆更新
  */
 import React, { useState, useEffect, useRef } from 'react';
 import type { ChatMessage, EmotionResult, AgentToolResult } from '../types';
@@ -10,6 +10,10 @@ import {
 } from '../lib/chatService';
 import { processMessage } from '../lib/agentCore';
 import { HedgehogIP } from '../constants';
+
+const StaticHedgehog = ({ size = 28 }: { size?: number }) => (
+  <img src="/ip/hedgehog-calm.png" alt="小宁" width={size} height={size} className="object-contain" draggable={false} />
+);
 
 interface ChatWithXiaoningProps {
   onBack: () => void;
@@ -93,7 +97,7 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
       }
     } catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
-      const msg = raw.length > 80 ? '服務暫時無法使用，請檢查網路或稍後再試。' : raw;
+      const msg = raw.length > 80 ? '服务暂时无法使用，请检查网路或稍后再试。' : raw;
       setError(msg);
       setMessages((prev) => prev.filter((m) => m.id !== assistantId));
     } finally {
@@ -118,9 +122,9 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         </button>
         <div className="flex items-center gap-2">
-          <HedgehogIP stressLevel={emotionStress} size={36} />
+          <StaticHedgehog size={36} />
           <div>
-            <span className="font-bold text-slate-800">和小寧聊聊</span>
+            <span className="font-bold text-slate-800">和小宁聊聊</span>
             {currentEmotion && (
               <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 font-medium">
                 {currentEmotion.emotion}
@@ -133,7 +137,7 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && !loading && (
           <p className="text-center text-slate-500 text-sm py-8">
-            說點什麼吧～小寧會記住我們的對話。
+            说点什么吧～小宁会记住我们的对话。
           </p>
         )}
         {messages.filter((m) => m.content || m.role === 'user').map((m) => (
@@ -143,7 +147,7 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
           >
             {m.role === 'assistant' && (
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
-                <HedgehogIP stressLevel={emotionStress} size={28} />
+                <StaticHedgehog size={28} />
               </div>
             )}
             <div
@@ -180,7 +184,7 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
                   <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center text-lg">🎵</div>
                   <div>
                     <p className="font-bold text-sm text-slate-800">{card.result.actionPayload.title}</p>
-                    <p className="text-xs text-slate-500">{card.result.actionPayload.duration} · 點擊播放</p>
+                    <p className="text-xs text-slate-500">{card.result.actionPayload.duration} · 点击播放</p>
                   </div>
                 </div>
               </button>
@@ -206,10 +210,10 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
         {loading && messages[messages.length - 1]?.role === 'assistant' && !messages[messages.length - 1]?.content && (
           <div className="flex gap-2 justify-start">
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
-              <HedgehogIP stressLevel={emotionStress} size={28} />
+              <StaticHedgehog size={28} />
             </div>
             <div className="bg-violet-100/80 text-slate-600 rounded-2xl px-4 py-2.5 text-sm animate-pulse">
-              小寧正在想...
+              小宁正在想...
             </div>
           </div>
         )}
@@ -226,7 +230,7 @@ export default function ChatWithXiaoning({ onBack, moodLogs = [] }: ChatWithXiao
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder="輸入訊息..."
+            placeholder="输入讯息..."
             className="flex-1 rounded-2xl border border-violet-200/80 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300"
             disabled={loading}
           />

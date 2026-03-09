@@ -5,11 +5,23 @@ import { setDailyRelaxDone } from '../lib/dailyTaskStorage';
 
 interface RelaxCenterProps {
   onOpenHealingChat?: () => void;
+  wellnessScore?: number;
 }
 
-const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat }) => {
+const PlayIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+);
+const PauseIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+);
+const StopIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+);
+
+const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat, wellnessScore = 75 }) => {
   const [activeExercise, setActiveExercise] = useState<RelaxationExercise | null>(null);
   const [isBreathing, setIsBreathing] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [volume, setVolume] = useState(0.6);
   const [audioError, setAudioError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -77,6 +89,17 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat }) => {
     }
   }, [volume]);
 
+  const togglePause = () => {
+    if (!activeExercise) return;
+    if (isPaused) {
+      audioRef.current?.play().catch(() => {});
+      setIsPaused(false);
+    } else {
+      audioRef.current?.pause();
+      setIsPaused(true);
+    }
+  };
+
   const stopExercise = () => {
     if (audioRef.current) {
       const fadeOut = setInterval(() => {
@@ -90,11 +113,13 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat }) => {
           clearInterval(fadeOut);
           setActiveExercise(null);
           setIsBreathing(false);
+          setIsPaused(false);
         }
       }, 40);
     } else {
       setActiveExercise(null);
       setIsBreathing(false);
+      setIsPaused(false);
     }
   };
 
@@ -111,11 +136,11 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat }) => {
     <div className="p-6 space-y-6 animate-in slide-in-from-right duration-500">
       <div className="glass-warm rounded-[2.5rem] p-10 text-center relative overflow-hidden border border-violet-100/40">
         <div className="flex justify-center mb-6">
-          <HedgehogIP stressLevel={15} size={140} />
+          <HedgehogIP stressLevel={wellnessScore} size={140} />
         </div>
-        <h2 className="text-2xl font-black text-slate-800 mb-2">你好，我是小寧</h2>
+        <h2 className="text-2xl font-black text-slate-800 mb-2">你好，我是小宁</h2>
         <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed px-4">
-          來自寧靜島的放鬆泉。做完呼吸或冥想，島上會更美。「最好的節奏，是讓一切自然發生。」
+          来自宁静岛的放松泉。做完呼吸或冥想，岛上会更美。「最好的节奏，是让一切自然发生。」
         </p>
         
         <button
@@ -123,14 +148,14 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat }) => {
           className="px-10 py-4 rounded-full text-white font-black text-xs shadow-lg hover:scale-105 active:scale-95 transition-all tracking-widest"
           style={{ background: 'linear-gradient(145deg, #7c6ba8 0%, #6b5b96 100%)' }}
         >
-          開啟療癒對話
+          开启疗愈对话
         </button>
       </div>
 
       <div className="space-y-4">
         <h3 className="font-black text-slate-800 px-2 uppercase text-xs tracking-widest flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#9b87c4' }}></div>
-          身心修復庫
+          身心修复库
         </h3>
         <div className="grid grid-cols-2 gap-4">
           {EXERCISES.map(ex => (
@@ -167,19 +192,19 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat }) => {
             <div className="flex flex-col items-center gap-20 w-full max-w-sm">
               <div className="text-center">
                 <span className="text-[10px] font-black uppercase tracking-[0.4em] mb-3 block" style={{ color: '#7c6ba8' }}>正念呼吸</span>
-                <h2 className="text-4xl font-black text-slate-800 mb-2">呼吸練習</h2>
+                <h2 className="text-4xl font-black text-slate-800 mb-2">呼吸练习</h2>
               </div>
               
               <div className="relative flex items-center justify-center w-full">
-                <div className="absolute w-72 h-72 rounded-full animate-ping opacity-20" style={{ background: 'rgba(216, 204, 235, 0.6)' }}></div>
+                <div className={`absolute w-72 h-72 rounded-full opacity-20 ${isPaused ? '' : 'animate-ping'}`} style={{ background: 'rgba(216, 204, 235, 0.6)' }}></div>
                 <div className="w-64 h-64 rounded-full flex items-center justify-center p-8 shadow-inner border" style={{ background: 'rgba(245, 240, 255, 0.6)', borderColor: 'rgba(232, 224, 245, 0.6)' }}>
-                  <div className="w-full h-full rounded-full animate-[pulse_4s_ease-in-out_infinite] flex items-center justify-center text-white font-black text-2xl shadow-2xl" style={{ background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' }}>
-                    呼氣
+                  <div className={`w-full h-full rounded-full flex items-center justify-center text-white font-black text-2xl shadow-2xl ${isPaused ? '' : 'animate-[pulse_4s_ease-in-out_infinite]'}`} style={{ background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' }}>
+                    {isPaused ? '暂停中' : '呼气'}
                   </div>
                 </div>
               </div>
 
-              <HedgehogIP stressLevel={10} size={100} />
+              <HedgehogIP stressLevel={wellnessScore} size={100} />
 
               {activeExercise.audioUrl && (
                 <div className="w-full max-w-xs flex items-center gap-3 px-4">
@@ -195,6 +220,16 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat }) => {
                   />
                 </div>
               )}
+
+              <div className="flex justify-center">
+                <button
+                  onClick={togglePause}
+                  className="w-16 h-16 rounded-full flex items-center justify-center text-white shadow-xl active:scale-90 transition-transform"
+                  style={{ background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' }}
+                >
+                  {isPaused ? <PlayIcon /> : <PauseIcon />}
+                </button>
+              </div>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-12 text-center">
@@ -205,8 +240,8 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat }) => {
                   {[...Array(8)].map((_, i) => (
                     <div 
                       key={i} 
-                      className="w-1.5 rounded-full animate-[pulse_1.5s_ease-in-out_infinite]" 
-                      style={{ height: `${Math.random() * 100}%`, animationDelay: `${i * 0.1}s`, background: '#9b87c4' }}
+                      className={`w-1.5 rounded-full ${isPaused ? '' : 'animate-[pulse_1.5s_ease-in-out_infinite]'}`}
+                      style={{ height: isPaused ? '30%' : `${Math.random() * 100}%`, animationDelay: `${i * 0.1}s`, background: '#9b87c4', transition: 'height 0.3s' }}
                     />
                   ))}
                 </div>
@@ -214,11 +249,11 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat }) => {
               <div>
                 <h2 className="text-4xl font-black text-slate-800 mb-2">{activeExercise.title}</h2>
                 <p className="text-slate-400 font-black tracking-[0.3em] uppercase text-xs">
-                  {activeExercise.audioUrl ? (audioError ? '音頻載入中...' : '沉浸療癒音頻中') : '沉浸模式已開啟'}
+                  {isPaused ? '已暂停' : activeExercise.audioUrl ? (audioError ? '音频载入中...' : '沉浸疗愈音频中') : '沉浸模式已开启'}
                 </p>
               </div>
               <div className="w-64 h-3 bg-slate-100 rounded-full overflow-hidden border border-white">
-                <div className="h-full bg-slate-900 animate-[shimmer_3s_infinite]" style={{ width: '40%' }}></div>
+                <div className={`h-full bg-slate-900 ${isPaused ? '' : 'animate-[shimmer_3s_infinite]'}`} style={{ width: '40%' }}></div>
               </div>
               {activeExercise.audioUrl && (
                 <div className="w-full max-w-xs flex items-center gap-3 px-4">
@@ -235,13 +270,15 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat }) => {
                   <span className="text-xs text-slate-400 font-bold w-8">{Math.round(volume * 100)}%</span>
                 </div>
               )}
-              <button 
-                onClick={stopExercise}
-                className="text-white px-12 py-5 rounded-full font-black text-sm shadow-xl tracking-widest"
-                style={{ background: 'linear-gradient(145deg, #7c6ba8 0%, #6b5b96 100%)' }}
-              >
-                結束練習
-              </button>
+              <div className="flex justify-center">
+                <button
+                  onClick={togglePause}
+                  className="w-16 h-16 rounded-full flex items-center justify-center text-white shadow-xl active:scale-90 transition-transform"
+                  style={{ background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' }}
+                >
+                  {isPaused ? <PlayIcon /> : <PauseIcon />}
+                </button>
+              </div>
             </div>
           )}
         </div>

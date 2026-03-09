@@ -46,7 +46,7 @@ function doubaoApiPlugin(apiKey: string): Plugin {
               }
             } catch (err) {
               res.statusCode = 500;
-              res.end(JSON.stringify({ error: '代理錯誤' }));
+              res.end(JSON.stringify({ error: '代理错误' }));
             }
           });
         } else {
@@ -71,9 +71,9 @@ export default defineConfig(({ mode }) => {
           registerType: 'autoUpdate',
           includeAssets: ['icon.svg', 'apple-touch-icon.png'],
           manifest: {
-            name: '小寧陪你',
-            short_name: '小寧陪你',
-            description: '你的情緒小夥伴 · 寧靜島。小寧懂你，陪你慢慢好起來。',
+            name: '小宁陪你',
+            short_name: '小宁陪你',
+            description: '你的情绪小伙伴 · 宁静岛。小宁懂你，陪你慢慢好起来。',
             theme_color: '#6366f1',
             background_color: '#fdfdff',
             display: 'standalone',

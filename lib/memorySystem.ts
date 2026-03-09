@@ -1,9 +1,9 @@
 /**
- * Memory System — 三層記憶架構
+ * Memory System — 三层记忆架构
  *
- * Short Memory:  最近 N 輪對話（已有，由 chatService 管理）
- * Long Memory:   用戶事實、偏好、故事（由 LLM 自動抽取）
- * Emotion Memory: 情緒歷史統計（趨勢、頻率）
+ * Short Memory:  最近 N 轮对话（已有，由 chatService 管理）
+ * Long Memory:   用户事实、偏好、故事（由 LLM 自动抽取）
+ * Emotion Memory: 情绪历史统计（趋势、频率）
  */
 
 import { supabase, isSupabaseEnabled } from './supabase';
@@ -25,9 +25,11 @@ export async function addEmotionRecord(
   const record: EmotionRecord = { id, userId, emotion, confidence, intensity, source, createdAt: Date.now() };
 
   if (isSupabaseEnabled() && supabase) {
-    await supabase.from('emotion_records').insert({
-      id, user_id: userId, emotion, confidence, intensity, source,
-    }).catch(() => {});
+    try {
+      await supabase.from('emotion_records').insert({
+        id, user_id: userId, emotion, confidence, intensity, source,
+      });
+    } catch { /* ignore */ }
   }
 
   const key = EMOTION_STORAGE_KEY + '_' + userId;
@@ -59,7 +61,7 @@ export async function getEmotionRecords(userId: string, limit = 50): Promise<Emo
 }
 
 /**
- * 計算情緒趨勢摘要
+ * 计算情绪趋势摘要
  */
 export async function getEmotionSummary(userId: string): Promise<EmotionMemory[]> {
   const records = await getEmotionRecords(userId, 100);
@@ -89,11 +91,11 @@ export async function getEmotionSummary(userId: string): Promise<EmotionMemory[]
   }).sort((a, b) => b.count - a.count);
 }
 
-/* ─── Long Memory: LLM 自動抽取 ─── */
+/* ─── Long Memory: LLM 自动抽取 ─── */
 
 /**
- * 從 AI 回覆中抽取值得記住的用戶事實
- * 由 Agent Core 在每輪對話後調用
+ * 从 AI 回复中抽取值得记住的用户事实
+ * 由 Agent Core 在每轮对话后调用
  */
 export async function extractAndSaveMemory(
   userId: string,
@@ -104,22 +106,22 @@ export async function extractAndSaveMemory(
 ): Promise<string[]> {
   const existingTexts = existingFacts.map(f => f.factText).join('\n');
 
-  const prompt = `你是記憶抽取助手。從用戶的最新訊息中，抽取值得長期記住的事實。
+  const prompt = `你是记忆抽取助手。从用户的最新讯息中，抽取值得长期记住的事实。
 
-已知事實：
-${existingTexts || '（暫無）'}
+已知事实：
+${existingTexts || '（暂无）'}
 
-用戶最新訊息：「${userMessage}」
+用户最新讯息：「${userMessage}」
 
-規則：
-- 只抽取具體的、有長期價值的事實（如：名字、職業、目標、重要事件、偏好）
-- 不要重複已知事實
-- 如果沒有新事實，返回空陣列
-- 返回 JSON 陣列，每項是一句話事實
+规则：
+- 只抽取具体的、有长期价值的事实（如：名字、职业、目标、重要事件、偏好）
+- 不要重复已知事实
+- 如果没有新事实，返回空阵列
+- 返回 JSON 阵列，每项是一句话事实
 
-返回格式（嚴格 JSON）：
-["事實1", "事實2"]
-如果沒有新事實：[]`;
+返回格式（严格 JSON）：
+["事实1", "事实2"]
+如果没有新事实：[]`;
 
   try {
     const raw = await callLLM(prompt);
@@ -141,24 +143,24 @@ ${existingTexts || '（暫無）'}
   }
 }
 
-/* ─── 情緒趨勢文字描述（注入 Prompt） ─── */
+/* ─── 情绪趋势文字描述（注入 Prompt） ─── */
 
 export function buildEmotionContext(summary: EmotionMemory[]): string {
   if (summary.length === 0) return '';
 
   const top3 = summary.slice(0, 3);
   const labels: Record<string, string> = {
-    happy: '開心', excited: '興奮', calm: '平靜', grateful: '感恩',
-    sad: '難過', anxious: '焦慮', stressed: '壓力大', angry: '生氣',
-    lonely: '孤獨', tired: '疲憊', confused: '迷茫', neutral: '平穩',
+    happy: '开心', excited: '兴奋', calm: '平静', grateful: '感恩',
+    sad: '难过', anxious: '焦虑', stressed: '压力大', angry: '生气',
+    lonely: '孤独', tired: '疲惫', confused: '迷茫', neutral: '平稳',
   };
   const trendLabels: Record<string, string> = {
-    improving: '正在好轉', stable: '持續', worsening: '有加重趨勢',
+    improving: '正在好转', stable: '持续', worsening: '有加重趋势',
   };
 
   const lines = top3.map(e =>
-    `- ${labels[e.emotion] || e.emotion}（出現 ${e.count} 次，${trendLabels[e.trend]}）`
+    `- ${labels[e.emotion] || e.emotion}（出现 ${e.count} 次，${trendLabels[e.trend]}）`
   );
 
-  return '\n用戶近期情緒趨勢：\n' + lines.join('\n');
+  return '\n用户近期情绪趋势：\n' + lines.join('\n');
 }
