@@ -34,6 +34,7 @@ export interface RelaxationExercise {
   id: string;
   title: string;
   duration: string;
+  durationMinutes: number; // 用於定時關閉
   category: 'Breathing' | 'Meditation' | 'Muscle';
   icon: string;
   color: string;

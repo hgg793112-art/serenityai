@@ -18,14 +18,20 @@ const StopIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
 );
 
+/** 定時關閉選項（分鐘），參考 Calm；含 1 分鐘便於快速測試 */
+const TIMER_OPTIONS = [1, 5, 10, 15, 20, 30, 45, 60] as const;
+
 const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat, wellnessScore = 75 }) => {
   const [activeExercise, setActiveExercise] = useState<RelaxationExercise | null>(null);
   const [isBreathing, setIsBreathing] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [volume, setVolume] = useState(0.6);
   const [audioError, setAudioError] = useState(false);
+  const [timerMinutes, setTimerMinutes] = useState<number | null>(null);
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const preloadedAudios = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     EXERCISES.forEach(ex => {
@@ -40,6 +46,12 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat, wellnessSc
   const startExercise = (ex: RelaxationExercise) => {
     setDailyRelaxDone();
     setAudioError(false);
+    setTimerMinutes(null);
+    setRemainingSeconds(null);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     if (ex.category === 'Breathing') {
       setIsBreathing(true);
     }
@@ -101,6 +113,12 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat, wellnessSc
   };
 
   const stopExercise = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setTimerMinutes(null);
+    setRemainingSeconds(null);
     if (audioRef.current) {
       const fadeOut = setInterval(() => {
         if (audioRef.current && audioRef.current.volume > 0.05) {
@@ -122,6 +140,38 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat, wellnessSc
       setIsPaused(false);
     }
   };
+
+  const selectTimer = (minutes: number | null) => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setTimerMinutes(minutes);
+    if (minutes != null && minutes > 0) {
+      setRemainingSeconds(minutes * 60);
+      timerRef.current = setInterval(() => {
+        setRemainingSeconds(prev => {
+          if (prev == null || prev <= 1) {
+            if (timerRef.current) {
+              clearInterval(timerRef.current);
+              timerRef.current = null;
+            }
+            stopExercise();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setRemainingSeconds(null);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -221,6 +271,34 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat, wellnessSc
                 </div>
               )}
 
+              <div className="w-full max-w-xs space-y-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">定时关闭</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {TIMER_OPTIONS.map(m => (
+                    <button
+                      key={m}
+                      onClick={() => selectTimer(timerMinutes === m ? null : m)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${timerMinutes === m ? 'text-white' : 'text-slate-500 bg-slate-100 hover:bg-violet-100'}`}
+                      style={timerMinutes === m ? { background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' } : {}}
+                    >
+                      {m}分钟
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => selectTimer(null)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${timerMinutes === null && remainingSeconds === null ? 'text-white' : 'text-slate-500 bg-slate-100 hover:bg-violet-100'}`}
+                    style={timerMinutes === null && remainingSeconds === null ? { background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' } : {}}
+                  >
+                    不关闭
+                  </button>
+                </div>
+                {remainingSeconds != null && remainingSeconds > 0 && (
+                  <p className="text-center text-xs text-slate-500">
+                    剩余 {Math.floor(remainingSeconds / 60)}:{String(remainingSeconds % 60).padStart(2, '0')}
+                  </p>
+                )}
+              </div>
+
               <div className="flex justify-center">
                 <button
                   onClick={togglePause}
@@ -270,6 +348,33 @@ const RelaxCenter: React.FC<RelaxCenterProps> = ({ onOpenHealingChat, wellnessSc
                   <span className="text-xs text-slate-400 font-bold w-8">{Math.round(volume * 100)}%</span>
                 </div>
               )}
+              <div className="w-full max-w-xs space-y-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">定时关闭</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {TIMER_OPTIONS.map(m => (
+                    <button
+                      key={m}
+                      onClick={() => selectTimer(timerMinutes === m ? null : m)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${timerMinutes === m ? 'text-white' : 'text-slate-500 bg-slate-100 hover:bg-violet-100'}`}
+                      style={timerMinutes === m ? { background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' } : {}}
+                    >
+                      {m}分钟
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => selectTimer(null)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${timerMinutes === null && remainingSeconds === null ? 'text-white' : 'text-slate-500 bg-slate-100 hover:bg-violet-100'}`}
+                    style={timerMinutes === null && remainingSeconds === null ? { background: 'linear-gradient(145deg, #9b87c4 0%, #7c6ba8 100%)' } : {}}
+                  >
+                    不关闭
+                  </button>
+                </div>
+                {remainingSeconds != null && remainingSeconds > 0 && (
+                  <p className="text-center text-xs text-slate-500">
+                    剩余 {Math.floor(remainingSeconds / 60)}:{String(remainingSeconds % 60).padStart(2, '0')}
+                  </p>
+                )}
+              </div>
               <div className="flex justify-center">
                 <button
                   onClick={togglePause}
