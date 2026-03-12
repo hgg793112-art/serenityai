@@ -200,42 +200,6 @@ const HealthTrends: React.FC<HealthTrendsProps> = ({ healthData, moodLogs = [], 
         )}
       </section>
 
-      {/* ─── 压力指数 ─── */}
-      {wellnessResult && (
-        <section className="glass-warm rounded-[2.5rem] p-6 border border-violet-100/40">
-          <h3 className="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2 mb-4">
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#7c6ba8' }}></span>
-            压力指数
-          </h3>
-
-          <div className="flex items-baseline gap-3 mb-5">
-            <span className="text-4xl font-black" style={{ color: '#7c6ba8' }}>{wellnessResult.score}</span>
-            <span className="text-xs text-slate-400 font-bold">/ 100</span>
-            <span className={`text-sm font-black ${trendColor}`}>{trendArrow} {trendText}</span>
-          </div>
-
-          <div className="space-y-3">
-            {activeDims.map(d => (
-              <div key={d.key} className="flex items-center gap-3">
-                <span className="text-[10px] font-black text-slate-400 w-8">{d.key}</span>
-                <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{ width: `${d.value}%`, background: d.color }}
-                  />
-                </div>
-                <span className="text-xs font-black text-slate-600 w-8 text-right">{d.value}</span>
-              </div>
-            ))}
-          </div>
-
-          {wellnessResult.suggestion && (
-            <p className="text-xs text-slate-500 mt-4 p-3 rounded-2xl bg-violet-50/50 border border-violet-100/30">
-              {wellnessResult.suggestion}
-            </p>
-          )}
-        </section>
-      )}
     </div>
   );
 };

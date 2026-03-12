@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ICONS } from '../constants';
 import { getDailyChatDone, getDailyRelaxDone } from '../lib/dailyTaskStorage';
 
@@ -8,49 +8,86 @@ interface DailyTasksProps {
   onGoCheckin?: () => void;
 }
 
-const CheckIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-);
+const TASK_EMOJI: Record<string, string> = {
+  chat: '💬',
+  relax: '🌿',
+  checkin: '📝',
+};
 
 const DailyTasks: React.FC<DailyTasksProps> = ({ onGoChat, onGoRelax, onGoCheckin }) => {
   const chatDone = getDailyChatDone();
   const relaxDone = getDailyRelaxDone();
   const checkinDone = !!localStorage.getItem('mood_checkin_' + new Date().toISOString().slice(0, 10));
 
-  const entries = [
+  const entries = useMemo(() => [
     { id: 'chat' as const, label: '和小宁聊聊', onGo: onGoChat, Icon: ICONS.Chat, done: chatDone },
     { id: 'relax' as const, label: '去放松一下', onGo: onGoRelax, Icon: ICONS.Relax, done: relaxDone },
     { id: 'checkin' as const, label: '记录今天的心情', onGo: onGoCheckin ?? (() => {}), Icon: ICONS.Lotus, done: checkinDone },
-  ];
+  ], [onGoChat, onGoRelax, onGoCheckin, chatDone, relaxDone, checkinDone]);
+
+  const doneCount = entries.filter(t => t.done).length;
+  const totalEnergy = doneCount * 5;
+  const maxEnergy = entries.length * 5;
 
   return (
-    <section className="glass-warm rounded-[2.5rem] p-6 border border-violet-100/40">
-      <div className="mb-4">
-        <h3 className="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#9b87c4' }}></span>
-          小宁推荐
+    <section className="rounded-[2.5rem] p-6" style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', border: '1px solid rgba(196,181,253,0.25)' }}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-black text-slate-800 text-xs tracking-widest flex items-center gap-2 uppercase">
+          <span className="text-base">🏝️</span>
+          岛上日常
         </h3>
+        <span className="text-xs font-bold text-violet-500">
+          今日能量 {totalEnergy}/{maxEnergy} ✨
+        </span>
       </div>
+
+      {/* Energy progress bar */}
+      <div className="w-full h-2 rounded-full bg-violet-100/60 mb-5 overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${maxEnergy > 0 ? (totalEnergy / maxEnergy) * 100 : 0}%`,
+            background: 'linear-gradient(90deg, #c4b5fd 0%, #a78bfa 50%, #8b5cf6 100%)',
+          }}
+        />
+      </div>
+
+      {/* Task list */}
       <div className="space-y-3">
         {entries.map((t) => (
           <button
             key={t.id}
             onClick={t.onGo}
-            className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left ${
+            className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left ${
               t.done
-                ? 'border-emerald-200/60 bg-emerald-50/40'
-                : 'border-violet-100/30 glass-warm hover:border-violet-200'
+                ? 'bg-violet-50/80'
+                : 'bg-white/60 hover:bg-white/80'
             }`}
+            style={{ border: 'none' }}
           >
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 [&>svg]:w-5 [&>svg]:h-5 ${
-              t.done ? 'bg-emerald-100 text-emerald-600' : 'bg-violet-100 text-violet-600'
+            {/* Emoji icon */}
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-lg ${
+              t.done ? 'bg-violet-100/60' : 'bg-violet-100'
             }`}>
-              {t.done ? <CheckIcon /> : <t.Icon />}
+              {TASK_EMOJI[t.id]}
             </div>
-            <span className={`flex-1 text-sm font-black ${t.done ? 'text-emerald-600 line-through' : 'text-slate-800'}`}>
+
+            {/* Label */}
+            <span className={`flex-1 text-sm font-bold ${t.done ? 'text-violet-400' : 'text-slate-800'}`}>
               {t.label}
             </span>
-            {t.done && <span className="text-[10px] font-black text-emerald-500">已完成</span>}
+
+            {/* Reward badge */}
+            {t.done ? (
+              <span className="text-[11px] font-bold text-violet-400 bg-violet-100/60 px-2.5 py-1 rounded-full whitespace-nowrap">
+                已获得 +5✨
+              </span>
+            ) : (
+              <span className="text-[11px] font-bold text-amber-500 bg-amber-50 px-2.5 py-1 rounded-full whitespace-nowrap">
+                +5 ✨
+              </span>
+            )}
           </button>
         ))}
       </div>
